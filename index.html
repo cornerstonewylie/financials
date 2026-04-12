@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cornerstone Baptist Church — Financial Dashboard 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --charcoal:#6B5D53;--tan:#DAC9AF;--tan-lt:#F5F0E9;--tan-md:#EDE4D6;
+  --cream:#FDFAF6;--ink:#2C2420;--muted:#8A7D76;--border:#E2D9CE;
+  --green:#2E6B42;--red:#B03A2E;--white:#FFFFFF;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--cream);color:var(--ink);min-height:100vh;}
+.site-header{background:var(--charcoal);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(44,36,32,.18);}
+.header-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;gap:20px;}
+.logo-area{display:flex;align-items:center;gap:14px;flex-shrink:0;}
+.logo-text{display:flex;flex-direction:column;line-height:1.1;}
+.logo-text .church{font-family:var(--serif);font-size:16px;font-weight:600;color:#fff;letter-spacing:.3px;}
+.logo-text .type{font-size:10px;font-weight:300;color:var(--tan);letter-spacing:1.2px;text-transform:uppercase;}
+.header-center{flex:1;display:flex;justify-content:center;}
+.period-tabs{display:flex;background:rgba(255,255,255,.08);border-radius:8px;padding:3px;gap:2px;}
+.period-tab{padding:6px 16px;border-radius:6px;border:none;background:transparent;color:rgba(218,201,175,.75);font-family:var(--sans);font-size:13px;cursor:pointer;transition:all .18s ease;white-space:nowrap;}
+.period-tab:hover{color:var(--tan);background:rgba(255,255,255,.06);}
+.period-tab.active{background:var(--tan);color:var(--charcoal);font-weight:500;}
+.period-tab.locked{opacity:.4;cursor:default;}
+.header-right{font-size:11px;color:rgba(218,201,175,.6);letter-spacing:.5px;white-space:nowrap;flex-shrink:0;}
+.main{max-width:1200px;margin:0 auto;padding:28px 24px 48px;}
+.period-banner{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:8px;}
+.period-title{font-family:var(--serif);font-size:28px;font-weight:500;color:var(--charcoal);}
+.period-subtitle{font-size:13px;color:var(--muted);}
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px;}
+.kpi-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:18px 16px 14px;position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s;}
+.kpi-card:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(107,93,83,.1);}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--charcoal);opacity:.15;}
+.kpi-card.highlight::before{background:var(--green);opacity:1;}
+.kpi-card.warn::before{background:var(--red);opacity:1;}
+.kpi-label{font-size:10px;font-weight:500;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.kpi-value{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ink);line-height:1;margin-bottom:4px;}
+.kpi-value.pos{color:var(--green);}
+.kpi-value.neg{color:var(--red);}
+.kpi-delta{font-size:11px;color:var(--muted);}
+.up{color:var(--green);}.down{color:var(--red);}
+.chart-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:16px;}
+.chart-grid-wide{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px;}
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px 20px 16px;box-shadow:0 1px 3px rgba(107,93,83,.06);}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;}
+.card-title{font-family:var(--serif);font-size:16px;font-weight:500;color:var(--ink);}
+.card-badge{font-size:10px;font-weight:500;letter-spacing:.6px;text-transform:uppercase;padding:3px 8px;border-radius:20px;background:var(--tan-lt);color:var(--charcoal);white-space:nowrap;}
+.card-badge.good{background:#EAF5EE;color:var(--green);}
+.card-sub{font-size:11px;color:var(--muted);margin-bottom:16px;}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:11px;color:var(--muted);}
+.legend span{display:flex;align-items:center;gap:5px;}
+.leg{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.leg-dash{width:18px;height:3px;border-radius:2px;flex-shrink:0;background-image:repeating-linear-gradient(90deg,currentColor 0,currentColor 4px,transparent 4px,transparent 7px);}
+.bbar{margin-bottom:10px;}
+.bbar-hdr{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
+.bbar-hdr .name{color:var(--ink);}
+.bbar-hdr .vals{color:var(--muted);}
+.bbar-hdr .pct{font-weight:500;margin-left:6px;}
+.bbar-bg{height:7px;background:var(--tan-lt);border-radius:4px;overflow:hidden;}
+.bbar-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+.mrow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px;}
+.mrow:last-child{border-bottom:none;font-weight:500;}
+.mrow .org{color:var(--ink);}
+.mrow .amt{color:var(--green);font-weight:500;font-variant-numeric:tabular-nums;}
+.pct-pill{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--tan-lt);color:var(--charcoal);margin-left:8px;}
+.pace-numbers{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;}
+.pace-bar-bg{height:12px;background:var(--tan-lt);border-radius:6px;overflow:hidden;}
+.pace-bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--charcoal),#9B8579);transition:width .8s cubic-bezier(.4,0,.2,1);}
+.pace-footer{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;}
+.pace-footer .projected{color:var(--charcoal);font-weight:500;}
+.month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px;}
+.month-tile{background:var(--tan-lt);border-radius:8px;padding:12px;}
+.month-tile .mo-label{font-size:10px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.month-tile .mo-income{font-family:var(--serif);font-size:18px;font-weight:500;color:var(--ink);margin-bottom:2px;}
+.month-tile .mo-exp{font-size:11px;color:var(--muted);margin-bottom:2px;}
+.month-tile .mo-net{font-size:12px;font-weight:500;}
+.month-tile .mo-net.pos{color:var(--green);}
+.month-tile .mo-net.neg{color:var(--red);}
+.yoy-row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;gap:8px;}
+.yoy-row:last-child{border-bottom:none;}
+.yoy-label{flex:1;color:var(--ink);}
+.yoy-2025{width:76px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;}
+.yoy-2026{width:76px;text-align:right;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums;}
+.yoy-delta{width:66px;text-align:right;font-size:11px;font-weight:500;}
+.yoy-delta.pos{color:var(--green);}.yoy-delta.neg{color:var(--red);}
+.yoy-hdr{font-size:10px;font-weight:500;color:var(--muted);}
+#tooltip{position:fixed;background:var(--ink);color:#fff;font-family:var(--sans);font-size:12px;padding:8px 12px;border-radius:7px;pointer-events:none;display:none;z-index:9999;white-space:nowrap;line-height:1.6;box-shadow:0 4px 16px rgba(44,36,32,.25);}
+.future-overlay{display:none;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;gap:12px;}
+.future-overlay.show{display:flex;}
+.future-icon{width:52px;height:52px;background:var(--tan-lt);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.future-title{font-family:var(--serif);font-size:22px;color:var(--charcoal);}
+.future-sub{font-size:13px;color:var(--muted);max-width:320px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.animate-in{animation:fadeUp .3s ease forwards;opacity:0;}
+@media(max-width:900px){.kpi-strip{grid-template-columns:repeat(3,1fr);}.chart-grid{grid-template-columns:1fr;}.period-tab{padding:5px 10px;font-size:12px;}}
+@media(max-width:600px){.kpi-strip{grid-template-columns:repeat(2,1fr);}.month-grid{grid-template-columns:1fr;}.header-right{display:none;}.period-tab{padding:5px 8px;font-size:11px;}}
+svg{display:block;}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo-area">
+      <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+        <rect x="0" y="0" width="15" height="15" rx="1" fill="#6B5D53"/>
+        <rect x="18" y="0" width="18" height="15" rx="1" fill="#DAC9AF"/>
+        <path d="M0 18 L0 34 Q0 36 2 36 L13 36 Q15 36 15 28 L15 18 Z" fill="#6B5D53"/>
+        <path d="M18 18 L18 28 Q18 36 26 36 L34 36 Q36 36 36 34 L36 18 Z" fill="#DAC9AF"/>
+      </svg>
+      <div class="logo-text">
+        <span class="church">CORNERSTONE</span>
+        <span class="type">Baptist Church</span>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="period-tabs" id="periodTabs">
+        <button class="period-tab active" data-period="q1">Q1</button>
+        <button class="period-tab locked" data-period="q2">Q2</button>
+        <button class="period-tab locked" data-period="q3">Q3</button>
+        <button class="period-tab locked" data-period="q4">Q4</button>
+        <button class="period-tab locked" data-period="fy">Full Year</button>
+      </div>
+    </div>
+    <div class="header-right">Financial Dashboard &nbsp;&middot;&nbsp; 2026</div>
+  </div>
+</header>
+<main class="main" id="mainContent"></main>
+<div id="tooltip"></div>
+<script>
+const DATA={q1:{
+  label:'Q1 2026',period:'January \u2013 March 31, 2026',
+  months:['January','February','March'],
+  monthly:[
+    {income:49808,contributions:46072,interest:3736,expenses:46810,net:2998},
+    {income:48465,contributions:46948,interest:1516,expenses:60515,net:-12051},
+    {income:56191,contributions:51074,interest:5117,expenses:38999,net:17192},
+  ],
+  totals:{income:154464,contributions:144094,interest:10369,expenses:146324,net:8139,reserves:1237757},
+  expenses_by_cat:[
+    {label:'Staff & Admin',    actual:83230,budget:88481,annual:345500},
+    {label:'Facilities',       actual:41428,budget:29818,annual:80000},
+    {label:'Missions',         actual:18045,budget:19592,annual:74700},
+    {label:'Ministry Programs',actual:3515, budget:7604, annual:30200},
+    {label:'Other',            actual:107,  budget:2466, annual:4000},
+  ],
+  giving_by_purpose:[
+    {label:'General Fund',    amounts:[33348,42860,49223],color:'#2563A8'},
+    {label:'Haiti Collective',amounts:[18525,0,0],         color:'#16A057'},
+    {label:'Other',           amounts:[199,103,50],        color:'#D97706'},
+  ],
+  missions:[
+    {org:'Satya Shiksha Seva (India)', actual:7525, q1bud:7525, annual:30100},
+    {org:'Haiti Collective',           actual:5225, q1bud:5091, annual:14400},
+    {org:'Adam Szabados (Hungary)',    actual:3714, q1bud:2872, annual:13250},
+    {org:'Evangelism / Missions',      actual:527,  q1bud:2936, annual:15000},
+    {org:'WCCCC',                      actual:490,  q1bud:718,  annual:1500},
+    {org:'SBC',                        actual:300,  q1bud:300,  annual:300},
+    {org:'Collin Baptist Assoc.',      actual:150,  q1bud:150,  annual:150},
+    {org:'Other Outreach',             actual:113,  q1bud:0,    annual:0},
+  ],
+  income_budget:149558,expense_budget:147960,
+  giving_budget:142765,annual_giving_budget:540000,
+  yoy:{contributions_2025:164356,income_2025:175761,expenses_2025:171537,net_2025:4224,reserves_2025:1228631},
+}};
+
+const fmt  = n=>'$'+Math.round(Math.abs(n)).toLocaleString('en-US');
+const fmtK = n=>{const a=Math.abs(n);return a>=1e6?'$'+(a/1e6).toFixed(2)+'M':a>=1000?'$'+Math.round(a/1000)+'K':'$'+Math.round(a);};
+const pct  = (a,b)=>b?Math.round(a/b*100):0;
+const delt = (a,b)=>{const d=a-b;return{val:d,sign:d>=0?'+':'-',cls:d>=0?'up':'down'};};
+const tip  = document.getElementById('tooltip');
+function showTip(e,h){tip.innerHTML=h;tip.style.display='block';mvTip(e);}
+function mvTip(e){tip.style.left=Math.min(e.clientX+14,window.innerWidth-tip.offsetWidth-10)+'px';tip.style.top=(e.clientY-10)+'px';}
+function hideTip(){tip.style.display='none';}
+function svgEl(tag,attrs){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const[k,v]of Object.entries(attrs))el.setAttribute(k,v);return el;}
+
+// ── CHART 1: Income & Expenses grouped bar + two budget lines ──
+function buildIncExp(d){
+  const W=520,H=230,pL=52,pR=16,pT=14,pB=34;
+  const svg=svgEl('svg',{width:'100%',viewBox:`0 0 ${W} ${H}`});
+  const cW=W-pL-pR,cH=H-pT-pB,maxV=75000,yS=v=>pT+cH-(v/maxV)*cH;
+  // grid
+  [0,20000,40000,60000].forEach(v=>{
+    const y=yS(v);
+    svg.appendChild(svgEl('line',{x1:pL,y1:y,x2:W-pR,y2:y,stroke:'#E2D9CE','stroke-width':'0.8'}));
+    const t=svgEl('text',{x:pL-6,y:y+4,'text-anchor':'end',fill:'#8A7D76','font-size':'9.5','font-family':'DM Sans,sans-serif'});
+    t.textContent=fmtK(v);svg.appendChild(t);
+  });
+  const gW=cW/d.months.length,barW=36,gap=5;
+  // bars: income=slate blue, expense=coral
+  const incColor='#3B6EA8', expColor='#C05240';
+  d.months.forEach((m,i)=>{
+    const gx=pL+i*gW+gW/2,md=d.monthly[i];
+    [{val:md.income,color:incColor,off:-(barW+gap/2),lbl:'Total Income'},
+     {val:md.expenses,color:expColor,off:gap/2,lbl:'Total Expenses'}].forEach(b=>{
+      const bh=(b.val/maxV)*cH;
+      const r=svgEl('rect',{x:gx+b.off,y:yS(b.val),width:barW,height:bh,fill:b.color,rx:'3',style:'cursor:pointer'});
+      r.addEventListener('mouseover',e=>showTip(e,`<b>${m}</b><br>${b.lbl}: <b>${fmt(b.val)}</b>`));
+      r.addEventListener('mousemove',mvTip);r.addEventListener('mouseout',hideTip);
+      svg.appendChild(r);
+    });
+    // Net dot
+    const nc=svgEl('circle',{cx:gx,cy:yS(Math.abs(md.net)),r:'4.5',
+      fill:md.net>=0?'#16A057':'#B03A2E',stroke:'#FDFAF6','stroke-width':'1.5',style:'cursor:pointer'});
+    nc.addEventListener('mouseover',e=>showTip(e,`<b>${m}</b><br>Net: <b>${md.net>=0?'+':''}${fmt(md.net)}</b>`));
+    nc.addEventListener('mousemove',mvTip);nc.addEventListener('mouseout',hideTip);
+    svg.appendChild(nc);
+    const xl=svgEl('text',{x:gx,y:H-pB+14,'text-anchor':'middle',fill:'#6B5D53','font-size':'10','font-family':'DM Sans,sans-serif'});
+    xl.textContent=m.slice(0,3);svg.appendChild(xl);
+  });
+  // Budget income line (dashed slate)
+  const budInc=[42003,63440,44115];
+  const budExp=[37638,63562,36285];
+  const budIncPts=d.months.map((_,i)=>[pL+i*gW+gW/2,yS(budInc[i])]);
+  const budExpPts=d.months.map((_,i)=>[pL+i*gW+gW/2,yS(budExp[i])]);
+  // budget expense line (dashed coral lighter)
+  [{pts:budExpPts,color:'#E8927F',lbl:'Budget Expense',bud:budExp},
+   {pts:budIncPts,color:'#6B9BD2',lbl:'Budget Income',bud:budInc}].forEach(line=>{
+    svg.appendChild(svgEl('polyline',{points:line.pts.map(p=>p.join(',')).join(' '),fill:'none',stroke:line.color,'stroke-width':'2','stroke-dasharray':'5,3'}));
+    line.pts.forEach(([px,py],i)=>{
+      const c=svgEl('circle',{cx:px,cy:py,r:3.5,fill:line.color,style:'cursor:pointer'});
+      c.addEventListener('mouseover',e=>showTip(e,`<b>${d.months[i]}</b><br>${line.lbl}: <b>${fmt(line.bud[i])}</b>`));
+      c.addEventListener('mousemove',mvTip);c.addEventListener('mouseout',hideTip);
+      svg.appendChild(c);
+    });
+  });
+  return svg;
+}
+
+// ── CHART 2: Donut ──
+function buildDonut(slices,total){
+  const W=220,H=190,cx=110,cy=90,r=68,ri=44;
+  const svg=svgEl('svg',{width:'100%',viewBox:`0 0 ${W} ${H}`});
+  let angle=-Math.PI/2;
+  slices.forEach(s=>{
+    const sweep=(s.val/total)*2*Math.PI;
+    const x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);
+    const x2=cx+r*Math.cos(angle+sweep),y2=cy+r*Math.sin(angle+sweep);
+    const xi1=cx+ri*Math.cos(angle),yi1=cy+ri*Math.sin(angle);
+    const xi2=cx+ri*Math.cos(angle+sweep),yi2=cy+ri*Math.sin(angle+sweep);
+    const lg=sweep>Math.PI?1:0;
+    const path=svgEl('path',{d:`M ${xi1} ${yi1} L ${x1} ${y1} A ${r} ${r} 0 ${lg} 1 ${x2} ${y2} L ${xi2} ${yi2} A ${ri} ${ri} 0 ${lg} 0 ${xi1} ${yi1} Z`,
+      fill:s.color,stroke:'#FDFAF6','stroke-width':'2.5',style:'cursor:pointer'});
+    const p=Math.round(s.val/total*100);
+    path.addEventListener('mouseover',e=>showTip(e,`<b>${s.label}</b><br>${fmt(s.val)} (${p}%)`));
+    path.addEventListener('mousemove',mvTip);path.addEventListener('mouseout',hideTip);
+    svg.appendChild(path);angle+=sweep;
+  });
+  const cl=svgEl('text',{x:cx,y:cy+5,'text-anchor':'middle',fill:'#2C2420','font-size':'13','font-weight':'600','font-family':'Cormorant Garamond,Georgia,serif'});
+  cl.textContent=fmtK(total);svg.appendChild(cl);
+  const cl2=svgEl('text',{x:cx,y:cy+18,'text-anchor':'middle',fill:'#8A7D76','font-size':'9','font-family':'DM Sans,sans-serif'});
+  cl2.textContent='total expenses';svg.appendChild(cl2);
+  return svg;
+}
+
+// ── CHART 3: Stacked giving bar ──
+function buildGiving(d){
+  const W=280,H=190,pL=46,pR=10,pT=12,pB=30;
+  const svg=svgEl('svg',{width:'100%',viewBox:`0 0 ${W} ${H}`});
+  const cW=W-pL-pR,cH=H-pT-pB;
+  const totals=d.months.map((_,i)=>d.giving_by_purpose.reduce((s,g)=>s+g.amounts[i],0));
+  const maxV=Math.max(...totals)*1.15,yS=v=>pT+cH-(v/maxV)*cH,barW=52;
+  [0,20000,40000,60000].forEach(v=>{
+    if(v>maxV)return;
+    const y=yS(v);
+    svg.appendChild(svgEl('line',{x1:pL,y1:y,x2:W-pR,y2:y,stroke:'#E2D9CE','stroke-width':'0.8'}));
+    const t=svgEl('text',{x:pL-4,y:y+4,'text-anchor':'end',fill:'#8A7D76','font-size':'9','font-family':'DM Sans,sans-serif'});
+    t.textContent=fmtK(v);svg.appendChild(t);
+  });
+  d.months.forEach((m,i)=>{
+    const bx=pL+i*(cW/3)+(cW/3-barW)/2;let base=0;
+    d.giving_by_purpose.forEach(g=>{
+      if(!g.amounts[i])return;
+      const bh=(g.amounts[i]/maxV)*cH;
+      const rect=svgEl('rect',{x:bx,y:yS(base+g.amounts[i]),width:barW,height:bh,fill:g.color,rx:'3',style:'cursor:pointer'});
+      rect.addEventListener('mouseover',e=>showTip(e,`<b>${m}</b><br>${g.label}: <b>${fmt(g.amounts[i])}</b>`));
+      rect.addEventListener('mousemove',mvTip);rect.addEventListener('mouseout',hideTip);
+      svg.appendChild(rect);base+=g.amounts[i];
+    });
+    const xl=svgEl('text',{x:bx+barW/2,y:H-pB+13,'text-anchor':'middle',fill:'#6B5D53','font-size':'10','font-family':'DM Sans,sans-serif'});
+    xl.textContent=m.slice(0,3);svg.appendChild(xl);
+  });
+  return svg;
+}
+
+// ── CHART 4: Reserves horizontal bar ──
+function buildReserves(){
+  const bars=[
+    {label:'Checking/Savings',val:62130, color:'#2563A8'},
+    {label:'CDs',             val:643815,color:'#16A057'},
+    {label:'CDARs',           val:475656,color:'#7C3AED'},
+    {label:'Money Market',    val:56157, color:'#D97706'},
+  ];
+  const W=560,barH=30,gap=12,pL=130,pR=92,pT=6,pB=6;
+  const H=pT+bars.length*(barH+gap)-gap+pB;
+  const svg=svgEl('svg',{width:'100%',viewBox:`0 0 ${W} ${H}`});
+  const maxV=Math.max(...bars.map(b=>b.val))*1.08,bW=W-pL-pR;
+  bars.forEach((b,i)=>{
+    const y=pT+i*(barH+gap),bw=(b.val/maxV)*bW;
+    const lbl=svgEl('text',{x:pL-10,y:y+barH/2+4,'text-anchor':'end',fill:'#2C2420','font-size':'10.5','font-family':'DM Sans,sans-serif'});
+    lbl.textContent=b.label;svg.appendChild(lbl);
+    svg.appendChild(svgEl('rect',{x:pL,y,width:bW,height:barH,fill:'#F5F0E9',rx:'5'}));
+    const bar=svgEl('rect',{x:pL,y,width:bw,height:barH,fill:b.color,rx:'5',style:'cursor:pointer'});
+    bar.addEventListener('mouseover',e=>showTip(e,`<b>${b.label}</b><br>${fmt(b.val)}`));
+    bar.addEventListener('mousemove',mvTip);bar.addEventListener('mouseout',hideTip);
+    svg.appendChild(bar);
+    const vlbl=svgEl('text',{x:pL+bw+7,y:y+barH/2+4,fill:'#2C2420','font-size':'10.5','font-weight':'500','font-family':'DM Sans,sans-serif'});
+    vlbl.textContent=fmt(b.val);svg.appendChild(vlbl);
+  });
+  return svg;
+}
+
+function renderPeriod(key){
+  const main=document.getElementById('mainContent');
+  main.innerHTML='';
+  if(!DATA[key]){
+    main.innerHTML=`<div class="future-overlay show"><div class="future-icon">&#128197;</div><div class="future-title">Not Yet Available</div><div class="future-sub">This period's reports will appear once the books are closed.</div></div>`;
+    return;
+  }
+  const d=DATA[key],t=d.totals,y=d.yoy;
+  const cd=delt(t.contributions,y.contributions_2025),ed=delt(t.expenses,y.expenses_2025),nd=delt(t.net,y.net_2025),rd=delt(t.reserves,y.reserves_2025);
+
+  main.insertAdjacentHTML('beforeend',`<div class="period-banner"><div class="period-title">${d.label}</div><div class="period-subtitle">${d.period}</div></div>`);
+
+  // KPIs
+  const kpiWrap=document.createElement('div');kpiWrap.className='kpi-strip';
+  [{label:'Total Giving',value:fmt(t.contributions),valueCls:'',sub:`<span class="${cd.cls}">${cd.sign}${fmt(cd.val)} vs 2025 Q1</span>`,cls:''},
+   {label:'Total Income',value:fmt(t.income),valueCls:'',sub:`Incl. ${fmt(t.interest)} interest`,cls:''},
+   {label:'Total Expenses',value:fmt(t.expenses),valueCls:'',sub:`<span class="${ed.cls}">${ed.sign}${fmt(ed.val)} vs 2025 Q1</span>`,cls:''},
+   {label:'Net Income',value:(t.net>=0?'+':'')+fmt(t.net),valueCls:t.net>=0?'pos':'neg',sub:`<span class="${nd.cls}">${nd.sign}${fmt(nd.val)} vs 2025 Q1</span>`,cls:t.net>=0?'highlight':'warn'},
+   {label:'Church Reserves',value:'$1.24M',valueCls:'',sub:`<span class="${rd.cls}">${rd.sign}${fmt(rd.val)} change</span>`,cls:'highlight'},
+  ].forEach((k,i)=>{
+    const c=document.createElement('div');c.className=`kpi-card animate-in ${k.cls}`;c.style.animationDelay=`${i*0.05}s`;
+    c.innerHTML=`<div class="kpi-label">${k.label}</div><div class="kpi-value ${k.valueCls}">${k.value}</div><div class="kpi-delta">${k.sub}</div>`;
+    kpiWrap.appendChild(c);
+  });
+  main.appendChild(kpiWrap);
+
+  // Row 1: Inc/Exp + Giving Budget/YoY
+  const r1=document.createElement('div');r1.className='chart-grid';
+  const pacePct=pct(t.contributions,d.annual_giving_budget);
+  const projected=Math.round(t.contributions/0.267);
+  const yoyRows=['Contributions','Total Income','Expenses','Net Income'].map((lbl,i)=>{
+    const vals=[{v26:t.contributions,v25:y.contributions_2025},{v26:t.income,v25:y.income_2025},{v26:t.expenses,v25:y.expenses_2025},{v26:t.net,v25:y.net_2025}][i];
+    const dd=delt(vals.v26,vals.v25);
+    return `<div class="yoy-row"><span class="yoy-label">${lbl}</span><span class="yoy-2025">${fmt(vals.v25)}</span><span class="yoy-2026">${fmt(vals.v26)}</span><span class="yoy-delta ${dd.cls==='up'?'pos':'neg'}">${dd.sign}${fmt(dd.val)}</span></div>`;
+  }).join('');
+
+  r1.innerHTML=`
+    <div class="card animate-in">
+      <div class="card-header"><div><div class="card-title">Income &amp; Expenses</div><div class="card-sub">Monthly actuals with budget targets (dashed lines)</div></div></div>
+      <div id="ieWrap"></div>
+      <div class="legend">
+        <span><span class="leg" style="background:#3B6EA8"></span>Actual Income</span>
+        <span><span class="leg" style="background:#C05240"></span>Actual Expenses</span>
+        <span><span class="leg" style="background:#16A057;border-radius:50%"></span>Net</span>
+        <span><span class="leg" style="background:#6B9BD2"></span>Budget Income</span>
+        <span><span class="leg" style="background:#E8927F"></span>Budget Expenses</span>
+      </div>
+    </div>
+    <div class="card animate-in">
+      <div class="card-header"><div><div class="card-title">2026 Giving Budget</div><div class="card-sub">Annual budget: $540,000</div></div><div class="card-badge good">${pacePct}% of budget</div></div>
+      <div class="pace-numbers"><span>${fmt(t.contributions)} given</span><span>$540,000 budget</span></div>
+      <div class="pace-bar-bg"><div class="pace-bar-fill" style="width:${pacePct}%"></div></div>
+      <div class="pace-footer"><span>${pacePct}% of annual budget through Q1</span><span class="projected">Projected: ${fmt(projected)}</span></div>
+      <div style="height:1px;background:var(--border);margin:16px 0 12px"></div>
+      <div class="card-title" style="font-size:14px;margin-bottom:3px">Year-over-Year</div>
+      <div class="card-sub" style="margin-bottom:8px">Q1 2026 vs. Q1 2025</div>
+      <div class="yoy-row"><span class="yoy-label yoy-hdr"></span><span class="yoy-2025 yoy-hdr">2025 Q1</span><span class="yoy-2026 yoy-hdr">2026 Q1</span><span class="yoy-delta yoy-hdr">Change</span></div>
+      ${yoyRows}
+    </div>`;
+  main.appendChild(r1);
+  document.getElementById('ieWrap').appendChild(buildIncExp(d));
+
+  // Monthly snapshot
+  const snap=document.createElement('div');snap.className='card animate-in';snap.style.marginBottom='16px';
+  snap.innerHTML=`<div class="card-header" style="margin-bottom:12px"><div><div class="card-title">Monthly Breakdown</div><div class="card-sub">Income, expenses and net by month</div></div></div><div class="month-grid">${d.months.map((m,i)=>{const md=d.monthly[i];return`<div class="month-tile"><div class="mo-label">${m}</div><div class="mo-income">${fmt(md.income)}</div><div class="mo-exp">Expenses: ${fmt(md.expenses)}</div><div class="mo-net ${md.net>=0?'pos':'neg'}">${md.net>=0?'+':''}${fmt(md.net)}</div></div>`;}).join('')}</div>`;
+  main.appendChild(snap);
+
+  // Row 2: Budget bars + Giving
+  const r2=document.createElement('div');r2.className='chart-grid';
+  // Distinct colors per category
+  const catColors=['#3B6EA8','#C0783A','#16A057','#7C3AED','#6B5D53'];
+  const barsHTML=d.expenses_by_cat.map((cat,ci)=>{
+    const over=cat.actual>cat.budget,col=over?'#B03A2E':catColors[ci],fw=Math.min(pct(cat.actual,cat.budget),100),p=pct(cat.actual,cat.budget);
+    return`<div class="bbar"><div class="bbar-hdr"><span class="name">${cat.label}</span><span class="vals">${fmt(cat.actual)} / ${fmt(cat.budget)}<span class="pct" style="color:${over?'#B03A2E':col}">${p}%</span></span></div><div class="bbar-bg"><div class="bbar-fill" style="width:${fw}%;background:${col}"></div></div></div>`;
+  }).join('');
+  r2.innerHTML=`
+    <div class="card animate-in">
+      <div class="card-header"><div><div class="card-title">Actual vs. Budget</div><div class="card-sub">Q1 actual vs. seasonally-adjusted Q1 budget</div></div></div>
+      ${barsHTML}
+      <div style="font-size:10px;color:var(--muted);margin-top:6px">Budget = Q1 seasonally-adjusted targets &nbsp;&middot;&nbsp; Red = over budget</div>
+    </div>
+    <div class="card animate-in">
+      <div class="card-header"><div><div class="card-title">Giving by Purpose</div><div class="card-sub">Contributions by month</div></div></div>
+      <div id="givWrap"></div>
+      <div class="legend">${d.giving_by_purpose.map(g=>`<span><span class="leg" style="background:${g.color}"></span>${g.label}</span>`).join('')}</div>
+    </div>`;
+  main.appendChild(r2);
+  document.getElementById('givWrap').appendChild(buildGiving(d));
+
+  // Row 3: Donut + Missions
+  const r3=document.createElement('div');r3.className='chart-grid';
+  const dSlices=[
+    {label:'Staff & Admin',val:83230,color:'#3B6EA8'},
+    {label:'Facilities',   val:41428,color:'#C0783A'},
+    {label:'Missions',     val:18045,color:'#16A057'},
+    {label:'Ministry',     val:3515, color:'#7C3AED'},
+    {label:'Other',        val:107,  color:'#8A7D76'},
+  ];
+  const mTotal=d.missions.reduce((s,m)=>s+m.actual,0);
+  const missionsHTML=d.missions.map(m=>`<div class="mrow"><span class="org">${m.org}</span><span style="display:flex;align-items:center"><span class="amt">${fmt(m.actual)}</span><span class="pct-pill">${pct(m.actual,m.annual)}%</span></span></div>`).join('')
+    +`<div class="mrow"><span class="org">Total YTD</span><span class="amt">${fmt(mTotal)}</span></div>`;
+  r3.innerHTML=`
+    <div class="card animate-in">
+      <div class="card-header"><div><div class="card-title">Where the Money Goes</div><div class="card-sub">Expense categories &mdash; Q1 combined</div></div></div>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div id="donutWrap" style="flex-shrink:0"></div>
+        <div style="flex:1;min-width:130px">${dSlices.map(s=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px"><div style="width:10px;height:10px;border-radius:2px;background:${s.color};flex-shrink:0"></div><span style="flex:1;color:var(--ink)">${s.label}</span><span style="color:var(--muted)">${Math.round(s.val/t.expenses*100)}%</span></div>`).join('')}</div>
+      </div>
+    </div>
+    <div class="card animate-in">
+      <div class="card-header"><div><div class="card-title">Missions &amp; Outreach</div><div class="card-sub">Year-to-date giving &amp; % of annual budget</div></div><div class="card-badge">${fmt(mTotal)} YTD</div></div>
+      ${missionsHTML}
+    </div>`;
+  main.appendChild(r3);
+  document.getElementById('donutWrap').appendChild(buildDonut(dSlices,t.expenses));
+
+  // Row 4: Reserves
+  const r4=document.createElement('div');r4.className='chart-grid-wide';
+  r4.innerHTML=`<div class="card animate-in"><div class="card-header" style="margin-bottom:14px"><div><div class="card-title">Church Reserves</div><div class="card-sub">Cash &amp; investment accounts &mdash; March 31, 2026</div></div><div class="card-badge good">$1,237,757 total &nbsp;&middot;&nbsp; Zero debt</div></div><div id="resWrap"></div><div class="legend" style="margin-top:10px"><span><span class="leg" style="background:#2563A8"></span>Checking/Savings</span><span><span class="leg" style="background:#16A057"></span>CDs</span><span><span class="leg" style="background:#7C3AED"></span>CDARs</span><span><span class="leg" style="background:#D97706"></span>Money Market</span></div></div>`;
+  main.appendChild(r4);
+  document.getElementById('resWrap').appendChild(buildReserves());
+
+  main.insertAdjacentHTML('beforeend','<div style="font-size:11px;color:var(--muted);text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-style:italic">Prepared April 2026 &nbsp;&middot;&nbsp; Monthly budget targets derived from 2025 seasonal patterns &nbsp;&middot;&nbsp; Reserves held in FDIC-insured accounts at Inwood Bank, LiveOak Bank &amp; North Dallas Bank &amp; Trust</div>');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  let ap='q1';renderPeriod(ap);
+  document.getElementById('periodTabs').addEventListener('click',e=>{
+    const btn=e.target.closest('.period-tab');
+    if(!btn||btn.classList.contains('locked'))return;
+    document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');ap=btn.dataset.period;renderPeriod(ap);
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+</script>
+</body>
+</html>
