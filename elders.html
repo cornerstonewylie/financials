@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cornerstone Baptist Church — Elder Financial Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--charcoal:#6B5D53;--charcoal-dark:#4a3f37;--charcoal-light:#8a7a70;--tan:#DAC9AF;--tan-light:#ede3d3;--cream:#FDFAF6;--cream-dark:#f4ede2;--white:#ffffff;--green:#3a7a4f;--green-light:#e8f4ed;--yellow:#b8860b;--yellow-light:#fdf8e6;--red:#8b2e2e;--red-light:#fbeaea;--text-dark:#2d2520;--text-mid:#5a4d45;--text-light:#8a7a70;--border:#e0d5c8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-dark);font-size:14px;line-height:1.5}
+#gate{position:fixed;inset:0;background:var(--charcoal-dark);display:flex;align-items:center;justify-content:center;z-index:9999}
+.gate-card{background:var(--cream);border-radius:4px;padding:48px;max-width:380px;width:90%;text-align:center}
+.gate-logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--charcoal);margin-bottom:6px}
+.gate-sub{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--charcoal-light);margin-bottom:32px}
+.gate-verse{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:var(--charcoal-light);margin-bottom:24px;line-height:1.6}
+#gate input{width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:3px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--white);color:var(--text-dark);text-align:center;letter-spacing:.15em;outline:none;margin-bottom:12px}
+#gate input:focus{border-color:var(--charcoal)}
+#gate button{width:100%;padding:12px;background:var(--charcoal);color:var(--cream);border:none;border-radius:3px;font-family:'DM Sans',sans-serif;font-size:13px;letter-spacing:.08em;cursor:pointer}
+#gate button:hover{background:var(--charcoal-dark)}
+.gate-error{color:var(--red);font-size:12px;margin-top:8px;min-height:16px}
+header{background:var(--charcoal-dark);color:var(--cream);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:100;border-bottom:2px solid var(--tan)}
+.church-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;letter-spacing:.02em}
+.report-meta{font-size:11px;color:var(--tan);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.header-right{font-size:11px;color:var(--tan-light);text-align:right;line-height:1.6}
+.tab-nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;display:flex;overflow-x:auto;scrollbar-width:none}
+.tab-nav::-webkit-scrollbar{display:none}
+.tab-btn{padding:14px 20px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:500;color:var(--text-light);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;letter-spacing:.03em}
+.tab-btn:hover{color:var(--charcoal)}
+.tab-btn.active{color:var(--charcoal-dark);border-bottom-color:var(--charcoal)}
+.main{padding:28px 32px 60px;max-width:1200px;margin:0 auto}
+.section{display:none}
+.section.active{display:block}
+.period-toggle{display:inline-flex;border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:24px}
+.period-btn{padding:7px 16px;border:none;background:var(--white);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text-light);cursor:pointer;transition:all .15s;letter-spacing:.04em;border-right:1px solid var(--border)}
+.period-btn:last-child{border-right:none}
+.period-btn.active{background:var(--charcoal);color:var(--cream)}
+.section-header{margin-bottom:20px}
+.section-header h2{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--charcoal-dark)}
+.section-header p{font-size:12.5px;color:var(--text-light);margin-top:3px}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.summary-card{background:var(--white);border:1px solid var(--border);border-radius:4px;padding:18px 20px}
+.summary-card .label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-light);margin-bottom:6px;font-weight:500}
+.summary-card .value{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--charcoal-dark);line-height:1}
+.summary-card .value.positive{color:var(--green)}
+.summary-card .value.negative{color:var(--red)}
+.summary-card .sub{font-size:11px;color:var(--text-light);margin-top:5px}
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:24px}
+.table-title{padding:14px 20px;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--charcoal);background:var(--cream-dark)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 16px;text-align:right;font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text-light);background:var(--cream-dark);border-bottom:1px solid var(--border)}
+th:first-child{text-align:left}
+td{padding:9px 16px;text-align:right;border-bottom:1px solid #f0ebe4;color:var(--text-dark)}
+td:first-child{text-align:left}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#faf7f3}
+.tr-section{background:var(--cream-dark)}
+.tr-section td{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--charcoal);padding:8px 16px;border-bottom:1px solid var(--border)}
+.tr-total td{font-weight:600;color:var(--charcoal-dark);background:var(--tan-light);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.tr-net td{font-weight:700;font-size:14px;background:var(--charcoal-dark);color:var(--cream);border-bottom:none}
+.tr-subtotal td{font-weight:600;color:var(--charcoal);background:#f5f0ea;border-top:1px solid var(--border)}
+.indent{padding-left:30px!important}
+.positive{color:var(--green)!important}
+.negative{color:var(--red)!important}
+.zero{color:var(--text-light)!important}
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:600}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-yellow{background:var(--yellow-light);color:var(--yellow)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-neutral{background:#f0ebe4;color:var(--text-light)}
+.search-bar{display:flex;gap:10px;margin-bottom:16px}
+.search-bar input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:3px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:var(--white);color:var(--text-dark)}
+.search-bar input:focus{border-color:var(--charcoal)}
+.search-bar select{padding:10px 12px;border:1px solid var(--border);border-radius:3px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;background:var(--white);cursor:pointer}
+.result-count{font-size:11px;color:var(--text-light);margin-bottom:10px}
+.fund-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+.fund-card{background:var(--white);border:1px solid var(--border);border-radius:4px;padding:16px 18px}
+.fund-card .fund-name{font-size:11.5px;font-weight:500;color:var(--text-mid);margin-bottom:6px;line-height:1.3}
+.fund-card .fund-amount{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--charcoal-dark)}
+.fund-card .fund-amount.negative{color:var(--red)}
+.fund-card .fund-note{font-size:10.5px;color:var(--text-light);margin-top:4px;line-height:1.4}
+.fund-card.unrestricted{border-top:3px solid var(--charcoal)}
+.fund-card.restricted{border-top:3px solid var(--tan)}
+.fund-card.negative-fund{border-top:3px solid var(--red);opacity:.85}
+.note-box{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--tan);border-radius:4px;padding:16px 20px;margin-bottom:20px;font-size:12.5px;color:var(--text-mid);line-height:1.65}
+.note-box strong{color:var(--charcoal-dark);font-weight:600}
+.note-box.warning{border-left-color:#e6a817;background:#fffbf2}
+.note-box.info{border-left-color:var(--charcoal);background:#f8f6f3}
+.note-box.ok{border-left-color:var(--green);background:var(--green-light)}
+.contrib-month-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.contrib-month-btn{padding:6px 14px;border:1px solid var(--border);border-radius:3px;background:var(--white);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text-light);cursor:pointer;transition:all .15s}
+.contrib-month-btn.active{background:var(--charcoal);color:var(--cream);border-color:var(--charcoal)}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.chart-card{background:var(--white);border:1px solid var(--border);border-radius:4px;padding:20px 24px 24px}
+.chart-card.full{grid-column:1/-1}
+.chart-card h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--charcoal-dark);margin-bottom:3px}
+.chart-card p{font-size:11px;color:var(--text-light);margin-bottom:16px}
+footer{background:var(--charcoal-dark);color:var(--tan);text-align:center;padding:16px;font-size:11px;letter-spacing:.05em;margin-top:40px}
+@media(max-width:700px){header{padding:14px 16px}.main{padding:16px 14px 40px}.chart-grid{grid-template-columns:1fr}th,td{padding:8px 10px;font-size:12px}}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-logo">Cornerstone Baptist Church</div>
+    <div class="gate-sub">Elder Financial Dashboard</div>
+    <div class="gate-verse">"Moreover, it is required of stewards that<br>they be found faithful." — 1 Corinthians 4:2</div>
+    <input type="password" id="pw-input" placeholder="Enter access code" onkeydown="if(event.key==='Enter')checkPw()">
+    <button onclick="checkPw()">Access Dashboard</button>
+    <div class="gate-error" id="pw-error"></div>
+  </div>
+</div>
+
+<header>
+  <div>
+    <div class="church-name">Cornerstone Baptist Church</div>
+    <div class="report-meta">Elder Financial Dashboard &nbsp;·&nbsp; January – April 2026</div>
+  </div>
+  <div class="header-right">As of April 30, 2026<br>Prepared by Christopher Brons</div>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="showTab('pl',this)">P&amp;L Statement</button>
+  <button class="tab-btn" onclick="showTab('budget',this)">Budget vs. Actual</button>
+  <button class="tab-btn" onclick="showTab('contributions',this)">Contributions</button>
+  <button class="tab-btn" onclick="showTab('missions',this)">Missions &amp; Outreach</button>
+  <button class="tab-btn" onclick="showTab('reserves',this)">Church Reserves</button>
+  <button class="tab-btn" onclick="showTab('charts',this)">Charts</button>
+  <button class="tab-btn" onclick="showTab('register',this)">Transaction Register</button>
+</nav>
+
+<div class="main">
+
+<!-- P&L -->
+<div id="tab-pl" class="section active">
+  <div class="section-header"><h2>Income &amp; Expense Statement</h2><p>January – April 2026 · account-level detail · toggle for individual months</p></div>
+  <div class="period-toggle">
+    <button class="period-btn active" onclick="showPL('ytd',this)">Jan–Apr YTD</button>
+    <button class="period-btn" onclick="showPL('jan',this)">January</button>
+    <button class="period-btn" onclick="showPL('feb',this)">February</button>
+    <button class="period-btn" onclick="showPL('mar',this)">March</button>
+    <button class="period-btn" onclick="showPL('apr',this)">April</button>
+  </div>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="label">Total Income</div><div class="value positive" id="pl-income">$203,708</div><div class="sub" id="pl-income-sub">Jan–Apr YTD</div></div>
+    <div class="summary-card"><div class="label">Total Expenses</div><div class="value" id="pl-expense">$186,637</div><div class="sub" id="pl-expense-sub">Jan–Apr YTD</div></div>
+    <div class="summary-card"><div class="label">Net Income</div><div class="value positive" id="pl-net">$17,071</div><div class="sub" id="pl-net-sub">Jan–Apr YTD</div></div>
+    <div class="summary-card"><div class="label">Reserves as of 4/30</div><div class="value">$1,246,689</div><div class="sub">↑ $26,932 from Jan 1</div></div>
+  </div>
+  <div class="note-box ok" id="pl-ytd-note">
+    <strong>Strong YTD Position:</strong> The church earned $17,071 net income through April and reserves grew $26,932 above the January 1 opening balance. Interest income of $14,020 is tracking 55% ahead of budget, driven by CD and CDAR holdings across three institutions.
+  </div>
+  <div class="note-box warning" id="pl-feb-note" style="display:none">
+    <strong>February Note:</strong> The ($12,051) net loss reflects the annual property insurance premium of $15,368 paid as a single lump sum. Excluding that payment, February would have been modestly profitable. This was anticipated in the annual budget.
+  </div>
+  <div class="note-box info" id="pl-apr-note" style="display:none">
+    <strong>April — Net Income $8,932:</strong> A solid month. Interest income of $3,650 reflects reconciled and posted CD/CDAR/MMA earnings from Inwood, LiveOak, and North Dallas Bank. Contributions of $45,595 were consistent with the spring run-rate.
+  </div>
+  <div class="table-wrap">
+    <div class="table-title" id="pl-table-title">Income &amp; Expense · January–April 2026</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Account</th>
+          <th id="pl-th-jan">January</th>
+          <th id="pl-th-feb">February</th>
+          <th id="pl-th-mar">March</th>
+          <th id="pl-th-apr">April</th>
+          <th>YTD Total</th>
+        </tr>
+      </thead>
+      <tbody id="pl-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- BUDGET VS ACTUAL -->
+<div id="tab-budget" class="section">
+  <div class="section-header"><h2>Budget vs. Actual</h2><p>January – April 2026 · green = favorable · yellow = within 10% · red = unfavorable</p></div>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="label">Actual Income (4-Mo)</div><div class="value positive">$203,708</div><div class="sub">Contributions + interest</div></div>
+    <div class="summary-card"><div class="label">Budget Income (4-Mo)</div><div class="value">$193,068</div><div class="sub">Jan–Apr budgeted</div></div>
+    <div class="summary-card"><div class="label">Income Variance</div><div class="value positive">+$10,640</div><div class="sub">+5.5% ahead of budget</div></div>
+    <div class="summary-card"><div class="label">Actual Expenses (4-Mo)</div><div class="value">$186,637</div><div class="sub">All categories</div></div>
+    <div class="summary-card"><div class="label">Budget Expenses (4-Mo)</div><div class="value">$192,176</div><div class="sub">Jan–Apr budgeted</div></div>
+    <div class="summary-card"><div class="label">Expense Variance</div><div class="value positive">+$5,539</div><div class="sub">Under budget — favorable</div></div>
+  </div>
+  <div class="note-box info"><strong>Budget methodology:</strong> The 2026 budget is month-specific (not evenly distributed). 4-month figures represent the sum of January–April budget amounts per line item as approved by the elders.</div>
+  <div class="table-wrap">
+    <div class="table-title">Budget vs. Actual · January–April 2026</div>
+    <table>
+      <thead><tr><th>Account</th><th>4-Mo Budget</th><th>4-Mo Actual</th><th>Variance $</th><th>Variance %</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr class="tr-section"><td colspan="6">Income</td></tr>
+        <tr><td class="indent">4000 – Contributions Income</td><td>$184,035</td><td>$189,689</td><td class="positive">+$5,654</td><td class="positive">+3.1%</td><td><span class="badge badge-green">Ahead</span></td></tr>
+        <tr><td class="indent">4100 – Interest Earned</td><td>$9,033</td><td>$14,020</td><td class="positive">+$4,987</td><td class="positive">+55.2%</td><td><span class="badge badge-green">Significantly Ahead</span></td></tr>
+        <tr class="tr-subtotal"><td>Total Income</td><td>$193,068</td><td>$203,708</td><td class="positive">+$10,640</td><td class="positive">+5.5%</td><td><span class="badge badge-green">Ahead</span></td></tr>
+        <tr class="tr-section"><td colspan="6">Facilities / Building</td></tr>
+        <tr><td class="indent">5210 – Insurance</td><td>$16,034</td><td>$16,578</td><td class="negative">($544)</td><td class="negative">−3.4%</td><td><span class="badge badge-green">On Track</span></td></tr>
+        <tr><td class="indent">5220 – Kitchen/Bathroom Supplies</td><td>$1,380</td><td>$1,333</td><td class="positive">+$47</td><td class="positive">+3.4%</td><td><span class="badge badge-green">On Track</span></td></tr>
+        <tr><td class="indent">5230 – Maintenance</td><td>$14,569</td><td>$6,314</td><td class="positive">+$8,255</td><td class="positive">+56.7%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr><td class="indent">5234 – Repair/Maintenance Supplies</td><td>—</td><td>$1,284</td><td>—</td><td>—</td><td><span class="badge badge-neutral">No Budget</span></td></tr>
+        <tr><td class="indent">5235 – Safety</td><td>$1,167</td><td>$1,042</td><td class="positive">+$125</td><td class="positive">+10.7%</td><td><span class="badge badge-green">On Track</span></td></tr>
+        <tr><td class="indent">5240 – Office/Communications</td><td>$655</td><td>$288</td><td class="positive">+$367</td><td class="positive">+56.0%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr><td class="indent">5250 – Utilities</td><td>$7,773</td><td>$9,894</td><td class="negative">($2,121)</td><td class="negative">−27.3%</td><td><span class="badge badge-yellow">Watch</span></td></tr>
+        <tr><td class="indent">5270 – Building Projects</td><td>—</td><td>$8,762</td><td class="negative">($8,762)</td><td>—</td><td><span class="badge badge-neutral">Capital</span></td></tr>
+        <tr class="tr-subtotal"><td>Total Facilities</td><td>$41,578</td><td>$46,518</td><td class="negative">($4,940)</td><td class="negative">−11.9%</td><td><span class="badge badge-yellow">Watch</span></td></tr>
+        <tr class="tr-section"><td colspan="6">Ministry Programs</td></tr>
+        <tr><td class="indent">5410 – Biblical Counseling Ministry</td><td>$268</td><td>$345</td><td class="negative">($77)</td><td class="negative">−28.7%</td><td><span class="badge badge-yellow">Watch</span></td></tr>
+        <tr><td class="indent">5420 – Education Materials &amp; VBS</td><td>$3,774</td><td>$1,138</td><td class="positive">+$2,636</td><td class="positive">+69.8%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr><td class="indent">5430 – Nursery</td><td>$3,115</td><td>$1,184</td><td class="positive">+$1,931</td><td class="positive">+62.0%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr><td class="indent">5440 – Music</td><td>$1,333</td><td>$876</td><td class="positive">+$457</td><td class="positive">+34.3%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr><td class="indent">5450 – Church Library</td><td>$556</td><td>$197</td><td class="positive">+$359</td><td class="positive">+64.6%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr class="tr-subtotal"><td>Total Ministry Programs</td><td>$9,046</td><td>$3,942</td><td class="positive">+$5,104</td><td class="positive">+56.4%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr class="tr-section"><td colspan="6">General &amp; Administrative</td></tr>
+        <tr><td class="indent">5610+ – Staff Compensation &amp; Benefits (all)</td><td>$107,175</td><td>$103,817</td><td class="positive">+$3,358</td><td class="positive">+3.1%</td><td><span class="badge badge-green">On Track</span></td></tr>
+        <tr><td class="indent">5620 – Elder &amp; Staff Expense</td><td>$3,515</td><td>$2,252</td><td class="positive">+$1,263</td><td class="positive">+35.9%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr><td class="indent">5640 – Accounting</td><td>$3,000</td><td>$2,576</td><td class="positive">+$424</td><td class="positive">+14.1%</td><td><span class="badge badge-green">On Track</span></td></tr>
+        <tr><td class="indent">5670 – Technology</td><td>$2,167</td><td>$793</td><td class="positive">+$1,374</td><td class="positive">+63.4%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr class="tr-subtotal"><td>Total G&amp;A</td><td>$115,857</td><td>$110,086</td><td class="positive">+$5,771</td><td class="positive">+5.0%</td><td><span class="badge badge-green">On Track</span></td></tr>
+        <tr class="tr-section"><td colspan="6">Missions &amp; Outreach</td></tr>
+        <tr><td class="indent">6010 – Adam Szabados</td><td>$3,830</td><td>$4,818</td><td class="negative">($988)</td><td class="negative">−25.8%</td><td><span class="badge badge-yellow">Watch</span></td></tr>
+        <tr><td class="indent">6020 – Satya Shiksha Seva</td><td>$10,033</td><td>$10,033</td><td>$0</td><td>0.0%</td><td><span class="badge badge-green">On Budget</span></td></tr>
+        <tr><td class="indent">6030 – Collin Baptist Association</td><td>$150</td><td>$150</td><td>$0</td><td>0.0%</td><td><span class="badge badge-green">On Budget</span></td></tr>
+        <tr><td class="indent">6040 – SBC</td><td>$300</td><td>$300</td><td>$0</td><td>0.0%</td><td><span class="badge badge-green">On Budget</span></td></tr>
+        <tr><td class="indent">6050 – Haiti Collective</td><td>$5,091</td><td>$3,450</td><td class="positive">+$1,641</td><td class="positive">+32.2%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr><td class="indent">6060 – Evangelism/Missions - Other</td><td>$3,109</td><td>$6,231</td><td class="negative">($3,122)</td><td class="negative">−100.5%</td><td><span class="badge badge-red">Over Budget</span></td></tr>
+        <tr><td class="indent">6090 – WCCCC</td><td>$718</td><td>$628</td><td class="positive">+$90</td><td class="positive">+12.5%</td><td><span class="badge badge-green">On Track</span></td></tr>
+        <tr class="tr-subtotal"><td>Total Missions &amp; Outreach</td><td>$23,231</td><td>$25,762</td><td class="negative">($2,531)</td><td class="negative">−10.9%</td><td><span class="badge badge-yellow">Watch</span></td></tr>
+        <tr class="tr-section"><td colspan="6">Other</td></tr>
+        <tr><td class="indent">9000 – Miscellaneous</td><td>$2,466</td><td>$107</td><td class="positive">+$2,359</td><td class="positive">+95.7%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr><td class="indent">9999 – Ask My Client (pending reclassification)</td><td>—</td><td>$222</td><td class="negative">($222)</td><td>—</td><td><span class="badge badge-neutral">Pending</span></td></tr>
+        <tr class="tr-total"><td>Total Expenses</td><td>$192,176</td><td>$186,637</td><td class="positive">+$5,539</td><td class="positive">+2.9%</td><td><span class="badge badge-green">Under Budget</span></td></tr>
+        <tr class="tr-net"><td>Net Income / (Loss)</td><td>$892</td><td>$17,071</td><td class="positive">+$16,179</td><td>—</td><td><span class="badge badge-green" style="background:rgba(255,255,255,.15);color:#fff">Strong</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note-box ok"><strong>Elder &amp; Staff Expense (5620) — $2,252 vs. $3,515 budget (−35.9%):</strong> Running under budget through April. The January figure ($1,367) includes pastoral and staff reimbursements; February through April are each under $400. No concerns at this time.</div>
+  <div class="note-box warning"><strong>Evangelism/Missions - Other (6060) — $6,231 vs. $3,109 budget (+100%):</strong> February included a large concentration of outreach spending ($5,306). April includes B&amp;B Theatres outreach event ($639) and Hearts for the Lost ($200). Bookkeeper will confirm the February detail.</div>
+  <div class="note-box warning"><strong>Utilities (5250) — $9,894 vs. $7,773 budget (+27%):</strong> Running above budget, likely driven by winter heating through Q1. Typically moderates in spring/summer. Monitor through Q2.</div>
+  <div class="note-box"><strong>Account 9999 – Ask My Client ($222, April):</strong> Placeholder for transactions pending your categorization guidance. Will be reclassified once direction is provided.</div>
+</div>
+
+<!-- CONTRIBUTIONS -->
+<div id="tab-contributions" class="section">
+  <div class="section-header"><h2>Contributions by Purpose</h2><p>January – April 2026 · designated fund detail · no donor names</p></div>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="label">Total Giving (YTD)</div><div class="value positive">$189,689</div><div class="sub">Jan–Apr 2026</div></div>
+    <div class="summary-card"><div class="label">Annual Budget</div><div class="value">$540,000</div><div class="sub">Full year giving target</div></div>
+    <div class="summary-card"><div class="label">Budget (4-Mo Pace)</div><div class="value">$184,035</div><div class="sub">Jan–Apr prorated</div></div>
+    <div class="summary-card"><div class="label">Variance vs. Budget</div><div class="value positive">+$5,654</div><div class="sub">+3.1% ahead</div></div>
+    <div class="summary-card"><div class="label">2025 Actual Giving</div><div class="value">$621,667</div><div class="sub">Full prior year</div></div>
+    <div class="summary-card"><div class="label">Annualized Run-Rate</div><div class="value">~$569K</div><div class="sub">At current 4-month pace</div></div>
+  </div>
+  <div class="note-box info"><strong>Methodology:</strong> The Contributions by Purpose report is the authoritative source for designated giving. January's total ($51,873) includes an $18,525 designated gift to the Haiti Collective that routes to a restricted fund and does not appear in account 4000.</div>
+  <div class="contrib-month-tabs">
+    <button class="contrib-month-btn active" onclick="showContrib('all',this)">All Months</button>
+    <button class="contrib-month-btn" onclick="showContrib('jan',this)">January</button>
+    <button class="contrib-month-btn" onclick="showContrib('feb',this)">February</button>
+    <button class="contrib-month-btn" onclick="showContrib('mar',this)">March</button>
+    <button class="contrib-month-btn" onclick="showContrib('apr',this)">April</button>
+  </div>
+  <div id="contrib-all">
+    <div class="table-wrap"><div class="table-title">Giving by Month — January–April 2026</div>
+    <table><thead><tr><th>Purpose / Fund</th><th>January</th><th>February</th><th>March</th><th>April</th><th>YTD Total</th><th>Gifts</th></tr></thead>
+    <tbody>
+      <tr><td>General Fund</td><td>$33,348</td><td>$42,860</td><td>$49,223</td><td>$45,560</td><td><strong>$170,991</strong></td><td>412</td></tr>
+      <tr><td>Haiti Collective</td><td>$18,525</td><td>—</td><td>—</td><td>—</td><td><strong>$18,525</strong></td><td>2</td></tr>
+      <tr><td>Benevolence Fund</td><td>—</td><td>—</td><td>$20</td><td>$20</td><td><strong>$40</strong></td><td>2</td></tr>
+      <tr><td>Building Fund</td><td>—</td><td>—</td><td>$15</td><td>$15</td><td><strong>$30</strong></td><td>2</td></tr>
+      <tr><td>Other</td><td>—</td><td>$103</td><td>—</td><td>—</td><td><strong>$103</strong></td><td>3</td></tr>
+      <tr class="tr-total"><td>Total Contributions</td><td>$51,873</td><td>$42,963</td><td>$49,258</td><td>$45,595</td><td>$189,689</td><td>421</td></tr>
+    </tbody></table></div>
+  </div>
+  <div id="contrib-jan" style="display:none"><div class="table-wrap"><div class="table-title">January 2026</div><table><thead><tr><th>Purpose</th><th>Amount</th><th># Gifts</th></tr></thead><tbody><tr><td>General Fund</td><td>$33,348</td><td>96</td></tr><tr><td>Haiti Collective</td><td>$18,525</td><td>2</td></tr><tr class="tr-total"><td>Total</td><td>$51,873</td><td>98</td></tr></tbody></table></div><div class="note-box">January includes a designated gift of $18,525.06 directed to the Haiti Collective. This represents the majority of January's above-average total.</div></div>
+  <div id="contrib-feb" style="display:none"><div class="table-wrap"><div class="table-title">February 2026</div><table><thead><tr><th>Purpose</th><th>Amount</th><th># Gifts</th></tr></thead><tbody><tr><td>General Fund</td><td>$42,860</td><td>113</td></tr><tr><td>Other</td><td>$103</td><td>3</td></tr><tr class="tr-total"><td>Total</td><td>$42,963</td><td>116</td></tr></tbody></table></div></div>
+  <div id="contrib-mar" style="display:none"><div class="table-wrap"><div class="table-title">March 2026</div><table><thead><tr><th>Purpose</th><th>Amount</th><th># Gifts</th></tr></thead><tbody><tr><td>General Fund</td><td>$49,223</td><td>108</td></tr><tr><td>Benevolence Fund</td><td>$20</td><td>1</td></tr><tr><td>Building Fund</td><td>$15</td><td>1</td></tr><tr class="tr-total"><td>Total</td><td>$49,258</td><td>110</td></tr></tbody></table></div></div>
+  <div id="contrib-apr" style="display:none"><div class="table-wrap"><div class="table-title">April 2026</div><table><thead><tr><th>Purpose</th><th>Amount</th><th># Gifts</th></tr></thead><tbody><tr><td>General Fund</td><td>$45,560</td><td>95</td></tr><tr><td>Benevolence Fund</td><td>$20</td><td>1</td></tr><tr><td>Building Fund</td><td>$15</td><td>1</td></tr><tr class="tr-total"><td>Total</td><td>$45,595</td><td>97</td></tr></tbody></table></div></div>
+</div>
+
+<!-- MISSIONS -->
+<div id="tab-missions" class="section">
+  <div class="section-header"><h2>Missions &amp; Outreach</h2><p>January – April 2026 · as of April 30, 2026</p></div>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="label">Total Disbursed (YTD)</div><div class="value">$25,762</div><div class="sub">All missions categories</div></div>
+    <div class="summary-card"><div class="label">4-Month Budget</div><div class="value">$23,231</div><div class="sub">Jan–Apr budgeted</div></div>
+    <div class="summary-card"><div class="label">Variance</div><div class="value negative">($2,531)</div><div class="sub">10.9% over 4-month budget</div></div>
+    <div class="summary-card"><div class="label">Haiti Fund — Pending Direction</div><div class="value positive">~$10,075</div><div class="sub">Remaining restricted balance</div></div>
+  </div>
+  <div class="table-wrap"><div class="table-title">Missions &amp; Outreach by Organization — Jan–Apr 2026</div>
+  <table><thead><tr><th>Organization</th><th>January</th><th>February</th><th>March</th><th>April</th><th>YTD Total</th><th>4-Mo Budget</th><th>Variance</th></tr></thead>
+  <tbody>
+    <tr><td>Adam Szabados (Hungary)</td><td>$1,305</td><td>$1,305</td><td>$1,104</td><td>$1,104</td><td>$4,818</td><td>$3,830</td><td class="negative">($988)</td></tr>
+    <tr><td>Satya Shiksha Seva (India)</td><td>$2,508</td><td>$2,508</td><td>$2,508</td><td>$2,508</td><td>$10,033</td><td>$10,033</td><td>$0</td></tr>
+    <tr><td>Collin Baptist Association</td><td>$150</td><td>—</td><td>—</td><td>—</td><td>$150</td><td>$150</td><td>$0</td></tr>
+    <tr><td>SBC Cooperative Program</td><td>$300</td><td>—</td><td>—</td><td>—</td><td>$300</td><td>$300</td><td>$0</td></tr>
+    <tr><td>Haiti Collective</td><td>$225</td><td>—</td><td>—</td><td>$3,225</td><td>$3,450</td><td>$5,091</td><td class="positive">+$1,641</td></tr>
+    <tr><td>Evangelism/Missions - Other</td><td>—</td><td>$5,306</td><td>$221</td><td>$704</td><td>$6,231</td><td>$3,109</td><td class="negative">($3,122)</td></tr>
+    <tr><td>WCCCC</td><td>—</td><td>$490</td><td>—</td><td>$138</td><td>$628</td><td>$718</td><td class="positive">+$90</td></tr>
+    <tr><td>Squarespace (missions web)</td><td>$38</td><td>$38</td><td>$38</td><td>$38</td><td>$151</td><td>—</td><td class="negative">($151)</td></tr>
+    <tr class="tr-total"><td>Total</td><td>$4,526</td><td>$9,647</td><td>$3,871</td><td>$7,717</td><td>$25,762</td><td>$23,231</td><td class="negative">($2,531)</td></tr>
+  </tbody></table></div>
+  <div class="note-box warning"><strong>Haiti Collective — Elder Direction Needed:</strong> Designated gift received January: $18,525.06. Disbursements to date: $225 (Jan) + $5,000 (Feb) + $3,000 (Apr 10) + $225 (Apr 30) = $8,450. Estimated remaining restricted balance: ~$10,075. Please advise on disposition of remaining funds.</div>
+  <div class="note-box"><strong>Adam Szabados — Rate Change:</strong> Monthly payments dropped from $1,305 to $1,104 beginning March. Annual budget may need updating for Q3 reporting.</div>
+  <div class="note-box"><strong>Evangelism/Missions - Other — February Concentration ($5,306):</strong> Bookkeeper will confirm specific recipients. April includes B&amp;B Theatres outreach event ($639) and Hearts for the Lost ($200).</div>
+</div>
+
+<!-- RESERVES -->
+<div id="tab-reserves" class="section">
+  <div class="section-header"><h2>Church Reserves &amp; Fund Balances</h2><p>As of April 30, 2026 · all accounts FDIC-insured · zero debt</p></div>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="label">Total Assets (4/30)</div><div class="value positive">$1,246,689</div><div class="sub">All bank accounts</div></div>
+    <div class="summary-card"><div class="label">Opening Balance (1/1)</div><div class="value">$1,219,757</div><div class="sub">Start of 2026</div></div>
+    <div class="summary-card"><div class="label">YTD Growth</div><div class="value positive">+$26,932</div><div class="sub">Net increase Jan–Apr</div></div>
+    <div class="summary-card"><div class="label">Total Liabilities</div><div class="value">$0</div><div class="sub">Zero debt</div></div>
+    <div class="summary-card"><div class="label">Months of Reserves</div><div class="value positive">~8.0 mo</div><div class="sub">At $155K/mo avg expense</div></div>
+    <div class="summary-card"><div class="label">YTD Net Income</div><div class="value positive">$17,071</div><div class="sub">Jan–Apr 2026</div></div>
+  </div>
+  <div class="table-wrap"><div class="table-title">Bank Accounts — As of April 30, 2026</div>
+  <table><thead><tr><th>Account</th><th>Type</th><th>Institution</th><th>Balance</th></tr></thead>
+  <tbody>
+    <tr><td>Checking (6572)</td><td>Checking</td><td>Inwood National Bank</td><td>$65,648</td></tr>
+    <tr><td>MMA (7265)</td><td>Money Market</td><td>Inwood National Bank</td><td>$52,553</td></tr>
+    <tr><td>CD (5107)</td><td>CD</td><td>Inwood National Bank</td><td>$141,160</td></tr>
+    <tr><td>CDAR (7554)</td><td>CDAR</td><td>Inwood National Bank</td><td>$80,429</td></tr>
+    <tr><td>Savings (8514)</td><td>Savings</td><td>LiveOak Bank</td><td>$1,767</td></tr>
+    <tr><td>CD (8124)</td><td>CD</td><td>LiveOak Bank</td><td>$261,582</td></tr>
+    <tr><td>MMA (1685)</td><td>Money Market</td><td>North Dallas Bank &amp; Trust</td><td>$3,705</td></tr>
+    <tr><td>CD (6851)</td><td>CD</td><td>North Dallas Bank &amp; Trust</td><td>$244,617</td></tr>
+    <tr><td>CDAR (2247)</td><td>CDAR</td><td>North Dallas Bank &amp; Trust</td><td>$152,137</td></tr>
+    <tr><td>CDAR (5384)</td><td>CDAR</td><td>North Dallas Bank &amp; Trust</td><td>$243,089</td></tr>
+    <tr class="tr-total"><td>Total</td><td></td><td></td><td>$1,246,689</td></tr>
+  </tbody></table></div>
+  <h3 style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--charcoal-dark);margin:20px 0 14px">Fund Balances — As of April 30, 2026</h3>
+  <div class="fund-grid">
+    <div class="fund-card unrestricted"><div class="fund-name">General Fund (Unrestricted)</div><div class="fund-amount">$1,054,912</div><div class="fund-note">Primary operating fund · unrestricted net assets</div></div>
+    <div class="fund-card restricted"><div class="fund-name">Building Fund</div><div class="fund-amount">$126,031</div><div class="fund-note">Restricted for building improvements</div></div>
+    <div class="fund-card restricted"><div class="fund-name">A/C Replacement Fund</div><div class="fund-amount">$49,200</div><div class="fund-note">Restricted for HVAC replacement</div></div>
+    <div class="fund-card restricted"><div class="fund-name">Benevolence Fund</div><div class="fund-amount">$23,004</div><div class="fund-note">Restricted for congregational assistance</div></div>
+    <div class="fund-card restricted"><div class="fund-name">Evangelism &amp; Missions Fund</div><div class="fund-amount">$12,269</div><div class="fund-note">Restricted for missions &amp; outreach</div></div>
+    <div class="fund-card negative-fund"><div class="fund-name">Adam Szabados Fund</div><div class="fund-amount negative">($4,818)</div><div class="fund-note">Budget line item · General Fund covers · expected</div></div>
+    <div class="fund-card negative-fund"><div class="fund-name">Satya Shiksha Seva Fund</div><div class="fund-amount negative">($10,033)</div><div class="fund-note">Budget line item · General Fund covers · expected</div></div>
+    <div class="fund-card negative-fund"><div class="fund-name">Haiti Fund</div><div class="fund-amount negative">($3,425)</div><div class="fund-note">Reconciliation in progress · ~$10,075 estimated remaining</div></div>
+    <div class="fund-card negative-fund"><div class="fund-name">Collin Baptist Assoc.</div><div class="fund-amount negative">($150)</div><div class="fund-note">Timing difference · budget line item</div></div>
+    <div class="fund-card negative-fund"><div class="fund-name">SBC Cooperative Program</div><div class="fund-amount negative">($300)</div><div class="fund-note">Timing difference · budget line item</div></div>
+  </div>
+  <div class="note-box"><strong>Regarding negative restricted fund balances:</strong> These are not cash shortfalls. They reflect Aplos's accounting treatment where regular monthly payments to supported organizations are expensed against dedicated funds when no new designated gifts have been received. The General Fund covers the difference. These will diminish naturally over time.</div>
+</div>
+
+<!-- CHARTS -->
+<div id="tab-charts" class="section">
+  <div class="section-header"><h2>Financial Charts</h2><p>Visual summaries · January–April 2026</p></div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Monthly Income vs. Expenses</h3>
+      <p>Actual results by month — February insurance premium drives the dip</p>
+      <div style="position:relative;height:260px"><canvas id="c-monthly-pl"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Reserve Balance Trend</h3>
+      <p>Total bank assets at end of each month · steady growth overall</p>
+      <div style="position:relative;height:260px"><canvas id="c-reserves"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Monthly Giving vs. Budget</h3>
+      <p>Contribution totals by month · dashed line = monthly budget pace</p>
+      <div style="position:relative;height:260px"><canvas id="c-giving"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Expense Breakdown — YTD</h3>
+      <p>Share of $186,637 total expenses by category</p>
+      <div style="position:relative;height:260px"><canvas id="c-donut"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <h3>Budget vs. Actual — Key Categories</h3>
+      <p>4-month actuals vs. budget · green bars = favorable vs. budget · red = unfavorable</p>
+      <div style="position:relative;height:310px"><canvas id="c-bva"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Interest Income by Month</h3>
+      <p>CD, CDAR &amp; MMA earnings · 55% ahead of budget YTD</p>
+      <div style="position:relative;height:240px"><canvas id="c-interest"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Missions &amp; Outreach — YTD by Recipient</h3>
+      <p>$25,762 total disbursed · January–April 2026</p>
+      <div style="position:relative;height:240px"><canvas id="c-missions"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div id="tab-register" class="section">
+  <div class="section-header"><h2>Transaction Register</h2><p>All transactions January – April 2026 · all bank accounts · searchable</p></div>
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Search payee, memo, fund, amount..." oninput="filterReg()">
+    <select id="filt-mo" onchange="filterReg()">
+      <option value="">All Months</option>
+      <option value="01/">January</option>
+      <option value="02/">February</option>
+      <option value="03/">March</option>
+      <option value="04/">April</option>
+    </select>
+    <select id="filt-ty" onchange="filterReg()">
+      <option value="">All Types</option>
+      <option value="Check">Check</option>
+      <option value="Deposit">Deposit</option>
+      <option value="Journal">Journal Entry</option>
+    </select>
+    <select id="filt-acct" onchange="filterReg()">
+      <option value="">All Accounts</option>
+      <option value="checking">Checking (6572)</option>
+      <option value="mma (7265)">INB MMA (7265)</option>
+      <option value="cd (5107)">INB CD (5107)</option>
+      <option value="cdar (7554)">INB CDAR (7554)</option>
+      <option value="liveoak">LiveOak</option>
+      <option value="north dallas">North Dallas B&amp;T</option>
+    </select>
+  </div>
+  <div class="result-count" id="reg-count">Loading...</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Date</th><th style="text-align:left">Type</th><th style="text-align:left">Payee</th><th style="text-align:left">Memo</th><th style="text-align:left">Fund</th><th style="text-align:left">Account</th><th>Amount</th></tr></thead>
+      <tbody id="reg-body"></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+<footer>Cornerstone Baptist Church · Wylie, TX · Elder Financial Dashboard · January–April 2026 · Confidential</footer>
+
+<script>
+// PASSWORD
+function checkPw(){
+  if(document.getElementById('pw-input').value.trim().toLowerCase()==='1cor42'){
+    document.getElementById('gate').style.display='none';
+    init();
+  }else{
+    document.getElementById('pw-error').textContent='Incorrect access code.';
+    document.getElementById('pw-input').value='';
+  }
+}
+
+// TABS
+function showTab(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// FORMAT
+const f=n=>{const a=Math.abs(n),s='$'+a.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});return n<0?'('+s+')':s};
+
+// P&L DATA
+const PL={
+  jan:{income:49807.66,expense:46809.57,net:2998.09,label:'January 2026'},
+  feb:{income:48464.67,expense:60515.25,net:-12050.58,label:'February 2026'},
+  mar:{income:56191.25,expense:38999.35,net:17191.90,label:'March 2026'},
+  apr:{income:49244.87,expense:40312.88,net:8931.99,label:'April 2026'},
+  ytd:{income:203708.45,expense:186637.05,net:17071.40,label:'Jan–Apr YTD'}
+};
+
+const PL_ROWS=[
+  ['','INCOME',0,0,0,0,'section'],
+  ['4000','Contributions Income',46071.65,46948.43,51074.01,45594.58,'detail'],
+  ['4100','Interest Earned',3736.01,1516.24,5117.24,3650.29,'detail'],
+  ['','Total Income',49807.66,48464.67,56191.25,49244.87,'subtotal'],
+  ['','FACILITIES / BUILDING',0,0,0,0,'section'],
+  ['5210','Insurance',0,15368,0,1210,'detail'],
+  ['5220','Kitchen/Bathroom Supplies',490.44,315.70,170.90,356.15,'detail'],
+  ['5230','Maintenance',3049.18,2040.50,408.00,816.00,'detail'],
+  ['5232','Cleaning Supplies',0,135,0,0,'detail'],
+  ['5234','Repair/Maintenance Supplies',109.86,132.35,31.95,1009.92,'detail'],
+  ['5235','Safety',129.98,519.98,192.98,199.00,'detail'],
+  ['5240','Office/Communications',72,72,72,72,'detail'],
+  ['5251','Utilities – Garbage',0,0,215.99,0,'detail'],
+  ['5252','Utilities – Gas & Electric',2084.12,2929.51,2142.32,1625.04,'detail'],
+  ['5253','Utilities – Internet',64.99,64.99,64.99,64.99,'detail'],
+  ['5254','Utilities – Telephone',19.99,19.99,19.99,19.99,'detail'],
+  ['5255','Utilities – Water',136.69,121.75,174.18,124.65,'detail'],
+  ['5270','Building Projects (Bldg Fund)',5980.01,911.50,1870.00,0,'detail'],
+  ['5280','Building Expense',0,1285.23,0,0,'detail'],
+  ['','Total Facilities',12137.26,23927.31,5363.30,5089.74,'subtotal'],
+  ['','MINISTRY PROGRAMS',0,0,0,0,'section'],
+  ['5410','Biblical Counseling Ministry',0,0,316.16,29.25,'detail'],
+  ['5420','Education Materials & VBS',1137.83,0,0,0,'detail'],
+  ['5430','Nursery',103.97,144.00,576.00,360.00,'detail'],
+  ['5440','Music',0,239.06,637.21,0,'detail'],
+  ['5450','Church Library',0,0,159.00,37.89,'detail'],
+  ["5460","Women's Ministry",0,179.82,21.82,0,'detail'],
+  ['','Total Ministry Programs',1241.80,562.88,1710.19,427.14,'subtotal'],
+  ['','GENERAL & ADMINISTRATIVE',0,0,0,0,'section'],
+  ['5610','Staff Comp & Benefits',189.34,189.34,189.33,189.34,'detail'],
+  ['5611','Staff Wages',22087.45,19623.16,21706.48,20664.82,'detail'],
+  ['5611.10','Dental',117.25,434.57,275.91,275.91,'detail'],
+  ['5611.20','Health Care – Justin',1197.65,1215.50,1215.50,1215.50,'detail'],
+  ['5611.21','Health Care – Cody',810.30,810.30,810.30,810.30,'detail'],
+  ['5611.30','Retirement – Justin',1947.25,1947.25,1947.25,1947.25,'detail'],
+  ['5611.31','Retirement – Cody',0,666.67,666.67,666.67,'detail'],
+  ['5620','Elder & Staff Expense',1366.75,216.82,298.11,370.40,'detail'],
+  ['5640','Accounting',629,629,649,669,'detail'],
+  ['5650','Office Supplies',140.25,81.90,223.29,0,'detail'],
+  ['5655','Software & Tools',10,47.35,45.88,47.35,'detail'],
+  ['5660','Food',14.97,9.44,0,0,'detail'],
+  ['5670','Technology',394.16,398.96,0,0,'detail'],
+  ['5680','Bank Fees',0,0,27.20,0,'detail'],
+  ['','Total G&A',28904.37,26270.26,28054.92,26856.54,'subtotal'],
+  ['','MISSIONS & OUTREACH',0,0,0,0,'section'],
+  ['6000','Squarespace (missions web)',37.80,37.80,37.80,37.80,'detail'],
+  ['6010','Adam Szabados (Hungary)',1305,1305,1104,1104,'detail'],
+  ['6020','Satya Shiksha Seva (India)',2508.34,2508.34,2508.34,2508.34,'detail'],
+  ['6030','Collin Baptist Association',150,0,0,0,'detail'],
+  ['6040','SBC',300,0,0,0,'detail'],
+  ['6050','Haiti Collective',225,0,0,3225,'detail'],
+  ['6060','Evangelism/Missions – Other',0,5306.04,220.80,704.41,'detail'],
+  ['6090','WCCCC',0,490.43,0,137.90,'detail'],
+  ['','Total Missions & Outreach',4526.14,9647.61,3870.94,7717.45,'subtotal'],
+  ['','OTHER EXPENSES',0,0,0,0,'section'],
+  ['9000','Miscellaneous',0,107.19,0,0,'detail'],
+  ['9999','Ask My Client (pending)',0,0,0,222.01,'detail'],
+  ['','Total Other Expenses',0,107.19,0,222.01,'subtotal'],
+  ['','TOTAL EXPENSES',46809.57,60515.25,38999.35,40312.88,'total'],
+  ['','NET INCOME / (LOSS)',2998.09,-12050.58,17191.90,8931.99,'net'],
+];
+
+function showPL(period,btn){
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const d=PL[period];
+  document.getElementById('pl-income').textContent=f(d.income);
+  document.getElementById('pl-income-sub').textContent=d.label;
+  document.getElementById('pl-expense').textContent=f(d.expense);
+  document.getElementById('pl-expense-sub').textContent=d.label;
+  const ne=document.getElementById('pl-net');
+  ne.textContent=f(d.net);ne.className='value '+(d.net>=0?'positive':'negative');
+  document.getElementById('pl-net-sub').textContent=d.label;
+  document.getElementById('pl-table-title').textContent='Income & Expense · '+d.label;
+  document.getElementById('pl-ytd-note').style.display=period==='ytd'?'block':'none';
+  document.getElementById('pl-feb-note').style.display=period==='feb'?'block':'none';
+  document.getElementById('pl-apr-note').style.display=period==='apr'?'block':'none';
+  buildPL(period);
+}
+
+function buildPL(period){
+  const body=document.getElementById('pl-tbody');
+  const isYTD=period==='ytd';
+  ['jan','feb','mar','apr'].forEach(m=>{
+    const th=document.getElementById('pl-th-'+m);
+    if(th)th.style.display=(isYTD||m===period)?'':'none';
+  });
+  body.innerHTML='';
+  PL_ROWS.forEach(row=>{
+    const [acct,name,jan,feb,mar,apr,type]=row;
+    const tr=document.createElement('tr');
+    const v={jan,feb,mar,apr};
+    const ytd=jan+feb+mar+apr;
+    if(type==='section'){tr.className='tr-section';tr.innerHTML=`<td colspan="6">${name}</td>`;body.appendChild(tr);return;}
+    if(type==='net')tr.className='tr-net';
+    else if(type==='total')tr.className='tr-total';
+    else if(type==='subtotal')tr.className='tr-subtotal';
+    const aSpan=acct&&type==='detail'?`<span style="color:var(--text-light);font-size:11px;margin-right:4px">${acct}</span>`:'';
+    const ind=type==='detail'?' class="indent"':'';
+    const nc=`<td${ind}>${aSpan}${name}</td>`;
+    const fc=(val,hidden)=>{
+      const st=hidden?'display:none;':'';
+      if(val===0&&type==='detail')return`<td style="${st}"><span class="zero">—</span></td>`;
+      const cls=type==='net'?(val>=0?' class="positive"':' class="negative"'):'';
+      return`<td${cls} style="${st}">${f(val)}</td>`;
+    };
+    if(isYTD){
+      const ytdC=type==='net'?`<td class="${ytd>=0?'positive':'negative'}">${f(ytd)}</td>`:`<td>${ytd===0?'<span class="zero">—</span>':f(ytd)}</td>`;
+      tr.innerHTML=nc+fc(jan)+fc(feb)+fc(mar)+fc(apr)+ytdC;
+    }else{
+      const mcs=['jan','feb','mar','apr'].map(m=>fc(v[m],m!==period)).join('');
+      const ytdC=type==='net'?`<td class="${ytd>=0?'positive':'negative'}">${f(ytd)}</td>`:`<td>${ytd===0?'<span class="zero">—</span>':f(ytd)}</td>`;
+      tr.innerHTML=nc+mcs+ytdC;
+    }
+    body.appendChild(tr);
+  });
+}
+
+// CONTRIBUTIONS
+function showContrib(month,btn){
+  document.querySelectorAll('.contrib-month-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['all','jan','feb','mar','apr'].forEach(m=>{
+    const el=document.getElementById('contrib-'+m);
+    if(el)el.style.display=m===month?'block':'none';
+  });
+}
+
+// REGISTER
+const TX=[
+// 313 transactions — all bank accounts
+['01/01/2026','Journal Entry','','Opening balances - Restricted fund designations carried forward from 12/31/2025','A/C Replacement','Inwood Bank - Checking (6572)',49200.0],
+['01/02/2026','Check','Lifeway','21864254','General Fund','Inwood Bank - Checking (6572)',-265.04],
+['01/04/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',3689.79],
+['01/05/2026','Check','Frontier Communications','','General Fund','Inwood Bank - Checking (6572)',-64.99],
+['01/05/2026','Check','Ministry Safe','','General Fund','Inwood Bank - Checking (6572)',-10.0],
+['01/05/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-103.97],
+['01/06/2026','Check','Eagle One Fire Systems, LLC','S25-1310','General Fund','Inwood Bank - Checking (6572)',-2804.63],
+['01/06/2026','Check','Eagle One Fire Systems, LLC','S25-1367','General Fund','Inwood Bank - Checking (6572)',-3175.38],
+['01/06/2026','Check','GuideStone Financial Resources','','General Fund','Inwood Bank - Checking (6572)',-117.25],
+['01/06/2026','Check','Squarespace','','General Fund','Inwood Bank - Checking (6572)',-37.8],
+['01/06/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-135.1],
+['01/07/2026','Check','Amazon','113-2350085-6328228','General Fund','Inwood Bank - Checking (6572)',-44.99],
+['01/07/2026','Check','Cowboy Chicken','','General Fund','Inwood Bank - Checking (6572)',-176.25],
+['01/07/2026','Check','Armor Coffee Co','','General Fund','Inwood Bank - Checking (6572)',-5.63],
+['01/07/2026','Check','Armor Coffee Co','','General Fund','Inwood Bank - Checking (6572)',-7.14],
+['01/08/2026','Check','Tom Thumb','','General Fund','Inwood Bank - Checking (6572)',-12.17],
+['01/08/2026','Check','Audible','','General Fund','Inwood Bank - Checking (6572)',-16.18],
+['01/09/2026','Check','Septic Solutions','1 Year Silver Level Maintenance Contract NEW','General Fund','Inwood Bank - Checking (6572)',-495.0],
+['01/09/2026','Check','Breeze Church Management','','General Fund','Inwood Bank - Checking (6572)',-72.0],
+['01/11/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',7271.13],
+['01/12/2026','Check','Mark Ritchie','','General Fund','Inwood Bank - Checking (6572)',-197.62],
+['01/12/2026','Check','Frankie&#39;s Mexican Cuisine','','General Fund','Inwood Bank - Checking (6572)',-35.55],
+['01/12/2026','Check','Armor Coffee Co','','General Fund','Inwood Bank - Checking (6572)',-8.7],
+['01/12/2026','Check','Loop Digital Church Bulletins','','General Fund','Inwood Bank - Checking (6572)',-10.0],
+['01/12/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-95.26],
+['01/13/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-1011.99],
+['01/13/2026','Check','Michael Calder','','General Fund','Inwood Bank - Checking (6572)',-94.23],
+['01/13/2026','Check','Emily Palmer','','General Fund','Inwood Bank - Checking (6572)',-37.92],
+['01/14/2026','Check','PGCS, Inc. dba Anago of Dallas','Janitorial','General Fund','Inwood Bank - Checking (6572)',-408.0],
+['01/14/2026','Check','Christopher Brons','','General Fund','Inwood Bank - Checking (6572)',-500.0],
+['01/14/2026','Check','Dan Truitt','','General Fund','Inwood Bank - Checking (6572)',-1041.66],
+['01/15/2026','Journal Entry','','Payroll: 01/01/2026 - 01/15/2026','General Fund','Inwood Bank - Checking (6572)',-10507.06],
+['01/15/2026','Check','East Fork Special Utility District','','General Fund','Inwood Bank - Checking (6572)',-86.69],
+['01/15/2026','Check','East Fork Special Utility District','','General Fund','Inwood Bank - Checking (6572)',-50.0],
+['01/15/2026','Check','GuideStone Financial Resources','','General Fund','Inwood Bank - Checking (6572)',-1947.25],
+['01/16/2026','Check','Answers In Genesis','Order #04984318','General Fund','Inwood Bank - Checking (6572)',-872.79],
+['01/16/2026','Check','Adam Szabados','','Adam Szabados','Inwood Bank - Checking (6572)',-1305.0],
+['01/16/2026','Check','Megan Hickman','','General Fund','Inwood Bank - Checking (6572)',-1050.0],
+['01/16/2026','Check','Justin Wheeler','','General Fund','Inwood Bank - Checking (6572)',-4945.42],
+['01/16/2026','Check','Christian Care Ministry','','General Fund','Inwood Bank - Checking (6572)',-1197.65],
+['01/16/2026','Check','Christian Care Ministry','','General Fund','Inwood Bank - Checking (6572)',-810.3],
+['01/16/2026','Deposit','Inwood National Bank','','General Fund','Inwood Bank - Checking (6572)',20000.0],
+['01/16/2026','Journal Entry','North Dallas Bank & Trust Co.','Interest Paid - NDBT xxx6851','General Fund','North Dallas Bank & Trust - CD (6851)',2322.94],
+['01/20/2026','Check','American Security Devices','16127','General Fund','Inwood Bank - Checking (6572)',-49.99],
+['01/20/2026','Check','American Security Devices','16126','General Fund','Inwood Bank - Checking (6572)',-69.99],
+['01/20/2026','Check','Shinrai Japanese Bistro','','General Fund','Inwood Bank - Checking (6572)',-37.03],
+['01/20/2026','Deposit','Justin Wheeler','','General Fund','Inwood Bank - Checking (6572)',4945.42],
+['01/20/2026','Check','Reliant Mission','','Satya Shiksha Seva (India)','Inwood Bank - Checking (6572)',-2508.34],
+['01/20/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-39.5],
+['01/20/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','Evangelism & Missions','Inwood Bank - Checking (6572)',18500.06],
+['01/20/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',2573.14],
+['01/21/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-40.2],
+['01/21/2026','Check','Chipotle Mexican Grill','','General Fund','Inwood Bank - Checking (6572)',-48.3],
+['01/21/2026','Check','Aplos Software','','General Fund','Inwood Bank - Checking (6572)',-129.0],
+['01/21/2026','Check','Kroger','','General Fund','Inwood Bank - Checking (6572)',-14.97],
+['01/22/2026','Check','Septic Solutions','Inv #75398','General Fund','Inwood Bank - Checking (6572)',-125.0],
+['01/22/2026','Check','SBC Executive Committee','','SBC','Inwood Bank - Checking (6572)',-150.0],
+['01/22/2026','Check','Armor Coffee Co','','General Fund','Inwood Bank - Checking (6572)',-7.81],
+['01/22/2026','Deposit','Inwood National Bank','','General Fund','Inwood Bank - MMA (7265)',244346.83],
+['01/22/2026','Check','Inwood National Bank','','General Fund','Inwood Bank - MMA (7265)',-140000.0],
+['01/22/2026','Journal Entry','Inwood National Bank','Interest Paid - INB xxx6181','General Fund','Inwood Bank - CD (5107)',505.55],
+['01/23/2026','Check','Collin Baptist Association','','Collin Baptist Association','Inwood Bank - Checking (6572)',-150.0],
+['01/23/2026','Check','Underwood Plumbing & Septic','','Building Fund','Inwood Bank - Checking (6572)',-2021.18],
+['01/26/2026','Check','NRG Business','115 013 519 862','General Fund','Inwood Bank - Checking (6572)',-2084.12],
+['01/26/2026','Check','LinkedPhone','','General Fund','Inwood Bank - Checking (6572)',-19.99],
+['01/28/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-34.1],
+['01/29/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-6.0],
+['01/29/2026','Check','Dan Truitt','','General Fund','Inwood Bank - Checking (6572)',-1041.66],
+['01/29/2026','Check','Inwood National Bank','Fund CD #7554','General Fund','Inwood Bank - MMA (7265)',-80000.0],
+['01/29/2026','Journal Entry','Inwood National Bank','Interest Paid - INB xxx7554','General Fund','Inwood Bank - Checking (6572)',20.71],
+['01/30/2026','Journal Entry','','Payroll: 01/16/2026 - 01/31/2026','General Fund','Inwood Bank - Checking (6572)',-7544.22],
+['01/30/2026','Check','Home Depot','','General Fund','Inwood Bank - Checking (6572)',-67.84],
+['01/30/2026','Check','The Haiti Collective','Support for Pastor Joseph','Haiti','Inwood Bank - Checking (6572)',-225.0],
+['01/30/2026','Check','Home Depot','','General Fund','Inwood Bank - Checking (6572)',-42.02],
+['01/30/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',878.0],
+['01/31/2026','Deposit','Accounting Contribution','Contribution transaction for batch Venmo deposits','General Fund','Inwood Bank - Checking (6572)',13134.53],
+['01/31/2026','Journal Entry','Live Oak Bank','Interest Paid - LOB xxx8514','General Fund','LiveOak Bank - Savings (8514)',4.32],
+['01/31/2026','Journal Entry','Live Oak Bank','Interest Paid - LOB xxx8124','General Fund','LiveOak Bank - CD (8124)',882.49],
+['02/01/2026','Deposit','Inwood National Bank','','General Fund','Inwood Bank - MMA (7265)',124.36],
+['02/01/2026','Journal Entry','North Dallas Bank & Trust Co.','Interest Paid - NDBT xxx1685','General Fund','North Dallas Bank & Trust - MMA (1685)',4.98],
+['02/02/2026','Check','BibleSurplus.com','925767','Evangelism & Missions','Inwood Bank - Checking (6572)',-149.0],
+['02/02/2026','Check','Blue Summit Supplies','E-File Only 1099 & W2','General Fund','Inwood Bank - Checking (6572)',-21.68],
+['02/02/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',4690.0],
+['02/02/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',4458.67],
+['02/02/2026','Deposit','Accounting Contribution','Contribution transaction for batch Venmo Contributions deposit','General Fund','Inwood Bank - Checking (6572)',1111.44],
+['02/03/2026','Check','Dan Truitt','','General Fund','Inwood Bank - Checking (6572)',-16.13],
+['02/03/2026','Check','Johnathan Hickman','','General Fund','Inwood Bank - Checking (6572)',-239.06],
+['02/03/2026','Check','Frontier Communications','','General Fund','Inwood Bank - Checking (6572)',-64.99],
+['02/03/2026','Check','Concordia Supply','Communion Supplies','Evangelism & Missions','Inwood Bank - Checking (6572)',-107.94],
+['02/03/2026','Check','Brian Johnson','Costco - Reimbursement for door mat','General Fund','Inwood Bank - Checking (6572)',-10.81],
+['02/03/2026','Check','Ministry Safe','','General Fund','Inwood Bank - Checking (6572)',-400.0],
+['02/03/2026','Check','Amazon','Printer Ink','General Fund','Inwood Bank - Checking (6572)',-19.59],
+['02/04/2026','Check','American Security Devices','16650','General Fund','Inwood Bank - Checking (6572)',-69.99],
+['02/04/2026','Check','American Security Devices','16651','General Fund','Inwood Bank - Checking (6572)',-49.99],
+['02/04/2026','Check','GuideStone Financial Resources','','General Fund','Inwood Bank - Checking (6572)',-317.32],
+['02/04/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-35.48],
+['02/04/2026','Check','Walmart','','General Fund','Inwood Bank - Checking (6572)',-29.64],
+['02/05/2026','Check','Septic Solutions','75622','General Fund','Inwood Bank - Checking (6572)',-875.0],
+['02/05/2026','Check','Rosa&#39;s Café & Tortilla Factory','','General Fund','Inwood Bank - Checking (6572)',-28.79],
+['02/06/2026','Check','Crossway','2577416','General Fund','Inwood Bank - Checking (6572)',-179.82],
+['02/06/2026','Check','Squarespace','','General Fund','Inwood Bank - Checking (6572)',-37.8],
+['02/09/2026','Check','Hays Luxury Loo&#39;s','','General Fund','Inwood Bank - Checking (6572)',-906.4],
+['02/09/2026','Check','Chick-fil-A','','General Fund','Inwood Bank - Checking (6572)',-34.47],
+['02/09/2026','Check','Breeze Church Management','','General Fund','Inwood Bank - Checking (6572)',-72.0],
+['02/09/2026','Check','Audible','','General Fund','Inwood Bank - Checking (6572)',-16.18],
+['02/09/2026','Check','Amazon','','Evangelism & Missions','Inwood Bank - Checking (6572)',-49.1],
+['02/09/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',7934.0],
+['02/10/2026','Check','Armor Coffee Co','','General Fund','Inwood Bank - Checking (6572)',-4.23],
+['02/10/2026','Check','Church Mutual','','General Fund','Inwood Bank - Checking (6572)',-14618.0],
+['02/10/2026','Check','Church Mutual','','General Fund','Inwood Bank - Checking (6572)',-750.0],
+['02/10/2026','Check','Loop Digital Church Bulletins','','General Fund','Inwood Bank - Checking (6572)',-10.0],
+['02/10/2026','Deposit','Amazon','','General Fund','Inwood Bank - Checking (6572)',5.51],
+['02/11/2026','Check','Septic Solutions','','General Fund','Inwood Bank - Checking (6572)',-500.0],
+['02/11/2026','Check','Microsoft','','General Fund','Inwood Bank - Checking (6572)',-37.35],
+['02/11/2026','Check','Amazon','allocation per Dan','General Fund','Inwood Bank - Checking (6572)',-398.96],
+['02/12/2026','Check','Amazon','Signs for Toilets','General Fund','Inwood Bank - Checking (6572)',-121.91],
+['02/13/2026','Journal Entry','','Payroll: 02/01/2026 - 02/15/2026','General Fund','Inwood Bank - Checking (6572)',-9047.09],
+['02/13/2026','Check','The Haiti Collective','','Evangelism & Missions','Inwood Bank - Checking (6572)',-5000.0],
+['02/13/2026','Check','Jerry Thompson','Heaters','General Fund','Inwood Bank - Checking (6572)',-46.73],
+['02/13/2026','Check','PGCS, Inc. dba Anago of Dallas','Janitorial','General Fund','Inwood Bank - Checking (6572)',-408.0],
+['02/13/2026','Check','Restoration Plumbing Services, LLC','','Building Fund','Inwood Bank - Checking (6572)',-911.5],
+['02/13/2026','Check','Montville Florist','flowers we sent to the funeral of Janeva Sulman’s mother','General Fund','Inwood Bank - Checking (6572)',-107.19],
+['02/17/2026','Check','Frontier Services','','General Fund','Inwood Bank - Checking (6572)',-135.0],
+['02/17/2026','Check','Dan Truitt','','General Fund','Inwood Bank - Checking (6572)',-1041.66],
+['02/17/2026','Check','Christopher Brons','','General Fund','Inwood Bank - Checking (6572)',-500.0],
+['02/17/2026','Check','East Fork Special Utility District','','General Fund','Inwood Bank - Checking (6572)',-71.75],
+['02/17/2026','Check','East Fork Special Utility District','','General Fund','Inwood Bank - Checking (6572)',-50.0],
+['02/18/2026','Check','Adam Szabados','','Adam Szabados','Inwood Bank - Checking (6572)',-1305.0],
+['02/18/2026','Check','Christian Care Ministry','','General Fund','Inwood Bank - Checking (6572)',-1215.5],
+['02/18/2026','Check','Christian Care Ministry','','General Fund','Inwood Bank - Checking (6572)',-810.3],
+['02/18/2026','Check','GuideStone Financial Resources','','General Fund','Inwood Bank - Checking (6572)',-2613.92],
+['02/18/2026','Check','Home Depot','','General Fund','Inwood Bank - Checking (6572)',-85.62],
+['02/18/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',3728.0],
+['02/19/2026','Check','Chick-fil-A','','General Fund','Inwood Bank - Checking (6572)',-43.35],
+['02/19/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['02/19/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['02/19/2026','Check','Costco','2 vacuum cleaners','General Fund','Inwood Bank - Checking (6572)',-378.83],
+['02/20/2026','Check','Trece Davis','','General Fund','Inwood Bank - Checking (6572)',-83.94],
+['02/20/2026','Check','Reliant Mission','','Satya Shiksha Seva (India)','Inwood Bank - Checking (6572)',-2508.34],
+['02/20/2026','Check','Amazon','Paper towel dispensers','General Fund','Inwood Bank - Checking (6572)',-128.34],
+['02/21/2026','Journal Entry','Inwood National Bank','Interest Paid - INB xxx5107','General Fund','Inwood Bank - CD (5107)',385.48],
+['02/23/2026','Check','Septic Solutions','75846','General Fund','Inwood Bank - Checking (6572)',-257.5],
+['02/23/2026','Check','Aplos Software','','General Fund','Inwood Bank - Checking (6572)',-129.0],
+['02/23/2026','Check','NRG Business','','General Fund','Inwood Bank - Checking (6572)',-2929.51],
+['02/23/2026','Check','Walmart','','General Fund','Inwood Bank - Checking (6572)',-21.48],
+['02/24/2026','Check','Logos Bible Study Platform','','General Fund','Inwood Bank - Checking (6572)',-16.99],
+['02/24/2026','Deposit','Walmart','','General Fund','Inwood Bank - Checking (6572)',12.04],
+['02/24/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',1961.0],
+['02/26/2026','Check','LinkedPhone','','General Fund','Inwood Bank - Checking (6572)',-19.99],
+['02/26/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['02/26/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['02/27/2026','Journal Entry','','Payroll: 02/16/2026 - 02/28/2026','General Fund','Inwood Bank - Checking (6572)',-9047.09],
+['02/27/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-27.04],
+['02/27/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',2383.0],
+['02/27/2026','Journal Entry','Inwood National Bank','Interest Paid - INB xxx7554','General Fund','Inwood Bank - Checking (6572)',193.59],
+['02/28/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',20682.32],
+['02/28/2026','Journal Entry','Live Oak Bank','Interest Paid - LOB xxx8514','General Fund','LiveOak Bank - Savings (8514)',3.79],
+['02/28/2026','Journal Entry','Live Oak Bank','Interest Paid - LOB xxx8124','General Fund','LiveOak Bank - CD (8124)',799.68],
+['02/28/2026','Journal Entry','North Dallas Bank & Trust Co.','Interest Paid - NDBT xxx1685','General Fund','North Dallas Bank & Trust - MMA (1685)',4.36],
+['03/01/2026','Deposit','Inwood National Bank','Interest Paid - INB xxx7265','General Fund','Inwood Bank - MMA (7265)',90.22],
+['03/02/2026','Check','Ministry Safe','','General Fund','Inwood Bank - Checking (6572)',-73.0],
+['03/02/2026','Check','King Donut','Donuts (Covenant Class)','General Fund','Inwood Bank - Checking (6572)',-54.47],
+['03/02/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-64.96],
+['03/02/2026','Deposit','Accounting Contribution','Contribution transaction for batch Venmo Contributions deposit','General Fund','Inwood Bank - Checking (6572)',1506.44],
+['03/02/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-72.0],
+['03/02/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-72.0],
+['03/02/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/02/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/03/2026','Check','American Security Devices','','General Fund','Inwood Bank - Checking (6572)',-49.99],
+['03/03/2026','Check','American Security Devices','','General Fund','Inwood Bank - Checking (6572)',-69.99],
+['03/03/2026','Check','Walmart','Food for elder&#39;s meeting','General Fund','Inwood Bank - Checking (6572)',-26.02],
+['03/03/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',4265.25],
+['03/03/2026','Journal Entry','Venmo','Venmo Fee','General Fund','Inwood Bank - Checking (6572)',-14.52],
+['03/03/2026','Check','Dan Truitt','','General Fund','Inwood Bank - Checking (6572)',-1041.66],
+['03/03/2026','Check','Pelican Wireless Systems','','General Fund','Inwood Bank - Checking (6572)',-35.88],
+['03/04/2026','Check','GuideStone Financial Resources','','General Fund','Inwood Bank - Checking (6572)',-275.91],
+['03/05/2026','Check','Pizza Hut','Food for elder&#39;s meeting','General Fund','Inwood Bank - Checking (6572)',-59.13],
+['03/05/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',310.0],
+['03/05/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/05/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/06/2026','Check','Squarespace','','General Fund','Inwood Bank - Checking (6572)',-37.8],
+['03/06/2026','Check','Frontier Communications','','General Fund','Inwood Bank - Checking (6572)',-64.99],
+['03/09/2026','Check','Audible','','General Fund','Inwood Bank - Checking (6572)',-16.18],
+['03/09/2026','Check','Breeze Church Management','','General Fund','Inwood Bank - Checking (6572)',-72.0],
+['03/10/2026','Check','Christopher Brons','','General Fund','Inwood Bank - Checking (6572)',-500.0],
+['03/10/2026','Check','Loop Digital Church Bulletins','','General Fund','Inwood Bank - Checking (6572)',-10.0],
+['03/11/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','Benevolence Fund','Inwood Bank - Checking (6572)',20.0],
+['03/11/2026','Check','LD Products','','General Fund','Inwood Bank - Checking (6572)',-75.37],
+['03/11/2026','Check','Cards Dallas, Inc.','','General Fund','Inwood Bank - Checking (6572)',-215.99],
+['03/11/2026','Check','New Growth Press','','General Fund','Inwood Bank - Checking (6572)',-316.16],
+['03/11/2026','Check','Amazon','','General Fund','Inwood Bank - Checking (6572)',-40.89],
+['03/12/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/12/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/12/2026','Check','Mark Ritchie','','General Fund','Inwood Bank - Checking (6572)',-89.0],
+['03/13/2026','Journal Entry','','Payroll: 03/01/2026 - 03/15/2026','General Fund','Inwood Bank - Checking (6572)',-9047.09],
+['03/13/2026','Check','PGCS, Inc. dba Anago of Dallas','','General Fund','Inwood Bank - Checking (6572)',-408.0],
+['03/16/2026','Check','East Fork Special Utility District','','General Fund','Inwood Bank - Checking (6572)',-124.18],
+['03/16/2026','Check','East Fork Special Utility District','','General Fund','Inwood Bank - Checking (6572)',-50.0],
+['03/16/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/16/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/16/2026','Check','Dan Truitt','','General Fund','Inwood Bank - Checking (6572)',-1041.66],
+['03/17/2026','Check','Justin Wheeler','Snacks/Drinks (Covenant Class)','General Fund','Inwood Bank - Checking (6572)',-59.2],
+['03/17/2026','Check','Johnathan Hickman','','General Fund','Inwood Bank - Checking (6572)',-509.37],
+['03/17/2026','Check','Dan Truitt','','Evangelism & Missions','Inwood Bank - Checking (6572)',-120.8],
+['03/17/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',10185.0],
+['03/17/2026','Check','Christian Care Ministry','','General Fund','Inwood Bank - Checking (6572)',-810.3],
+['03/17/2026','Check','Christian Care Ministry','','General Fund','Inwood Bank - Checking (6572)',-1215.5],
+['03/17/2026','Check','GuideStone Financial Resources','','General Fund','Inwood Bank - Checking (6572)',-2613.92],
+['03/17/2026','Check','Adam Szabados','','Adam Szabados','Inwood Bank - Checking (6572)',-1104.0],
+['03/19/2026','Check','Rosa&#39;s Café & Tortilla Factory','','General Fund','Inwood Bank - Checking (6572)',-31.18],
+['03/19/2026','Check','Venmo','','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/19/2026','Check','Venmo','','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/20/2026','Check','Reliant Mission','','Satya Shiksha Seva (India)','Inwood Bank - Checking (6572)',-2508.34],
+['03/23/2026','Check','Lisa Darwin','','General Fund','Inwood Bank - Checking (6572)',-21.82],
+['03/23/2026','Check','Aplos Software','','General Fund','Inwood Bank - Checking (6572)',-149.0],
+['03/24/2026','Deposit','PGCS, Inc. dba Anago of Dallas','','General Fund','Inwood Bank - Checking (6572)',408.0],
+['03/24/2026','Check','Granted Ministries','','Evangelism & Missions','Inwood Bank - Checking (6572)',-100.0],
+['03/25/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',2587.0],
+['03/25/2026','Check','Septic Solutions','4 risers and lids','Building Fund','Inwood Bank - Checking (6572)',-1870.0],
+['03/25/2026','Check','NRG Business','','General Fund','Inwood Bank - Checking (6572)',-2142.32],
+['03/26/2026','Check','LinkedPhone','','General Fund','Inwood Bank - Checking (6572)',-19.99],
+['03/26/2026','Check','Venmo','','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/26/2026','Check','Venmo','','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['03/27/2026','Check','PGCS, Inc. dba Anago of Dallas','','General Fund','Inwood Bank - Checking (6572)',-408.0],
+['03/30/2026','Check','Shinrai Japanese Bistro','','General Fund','Inwood Bank - Checking (6572)',-37.03],
+['03/30/2026','Deposit','Accounting Contribution','Contribution transaction for batch Contributions deposit','General Fund','Inwood Bank - Checking (6572)',4388.56],
+['03/31/2026','Journal Entry','','Payroll: 03/16/2026 - 03/31/2026','General Fund','Inwood Bank - Checking (6572)',-9047.1],
+['03/31/2026','Check','Dan Truitt','','General Fund','Inwood Bank - Checking (6572)',-1041.66],
+['03/31/2026','Check','Brian Johnson','Sherwin Williams - 1 gallon of paint for touchups in the hallways','General Fund','Inwood Bank - Checking (6572)',-31.95],
+['03/31/2026','Check','Gabriel Logan','Reimbursement for Tenebrae dress rehearsal lunch Music Fund','General Fund','Inwood Bank - Checking (6572)',-114.04],
+['03/31/2026','Journal Entry','Venmo','Venmo Fee','General Fund','Inwood Bank - Checking (6572)',-12.68],
+['03/31/2026','Deposit','Accounting Contribution','Contribution transaction for batch Venmo Contributions deposit','General Fund','Inwood Bank - Checking (6572)',23586.76],
+['03/31/2026','Deposit','Inwood National Bank','Interest Paid - INB xxx7265','General Fund','Inwood Bank - MMA (7265)',96.82],
+['03/31/2026','Journal Entry','Inwood National Bank','Interest Paid - INB xxx5107','General Fund','Inwood Bank - CD (5107)',386.54],
+['03/31/2026','Journal Entry','Inwood National Bank','Interest Paid - INB xxx7554','General Fund','Inwood Bank - Checking (6572)',214.88],
+['03/31/2026','Journal Entry','Live Oak Bank','Interest Paid - LOB xxx8514','General Fund','LiveOak Bank - Savings (8514)',4.2],
+['03/31/2026','Journal Entry','Live Oak Bank','Interest Paid - LOB xxx8124','General Fund','LiveOak Bank - CD (8124)',888.24],
+['03/31/2026','Journal Entry','North Dallas Bank & Trust Co.','Interest Paid - NDBT xxx1685','General Fund','North Dallas Bank & Trust - MMA (1685)',4.68],
+['03/31/2026','Journal Entry','North Dallas Bank & Trust Co.','Interest Paid - NDBT xxx2247','General Fund','North Dallas Bank & Trust - CDAR (2247)',1320.97],
+['03/31/2026','Journal Entry','North Dallas Bank & Trust Co.','Interest Paid - NDBT xxx5384','General Fund','North Dallas Bank & Trust - CDAR (5384)',2110.69],
+['04/01/2026','Check','Mark Ritchie','3/17/26 Sam&#39;s Kitchen $233.78 3/31/26 Sam&#39;s Kitchen $103.65 3/14/26 Walmart Kitchen $18.72','General Fund','Inwood Bank - Checking (6572)',-356.15],
+['04/01/2026','Check','Hearts for the Lost','','Evangelism & Missions','Inwood Bank - Checking (6572)',-200.0],
+['04/02/2026','Check','Ministry Safe','','General Fund','Inwood Bank - Checking (6572)',-48.0],
+['04/02/2026','Check','ACH Debit PAYMENT .00','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['04/02/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['04/02/2026','Check','American Security Devices','Burglar Alarm','General Fund','Inwood Bank - Checking (6572)',-49.99],
+['04/02/2026','Check','American Security Devices','Fire Alarm','General Fund','Inwood Bank - Checking (6572)',-69.99],
+['04/03/2026','Check','GuideStone Financial Resources','','General Fund','Inwood Bank - Checking (6572)',-275.91],
+['04/03/2026','Check','Frontier Communications','','General Fund','Inwood Bank - Checking (6572)',-64.99],
+['04/05/2026','Deposit','Accounting Contribution','Contribution transaction for batch Batch 690 Contributions deposit','General Fund','Inwood Bank - Checking (6572)',5754.0],
+['04/06/2026','Check','Craig Sword','Reimbursement for book','General Fund','Inwood Bank - Checking (6572)',-29.25],
+['04/06/2026','Check','Trece Davis','Tissue Tea Bags Post-It Notes','General Fund','Inwood Bank - Checking (6572)',-137.9],
+['04/06/2026','Check','Microsoft','','General Fund','Inwood Bank - Checking (6572)',-37.35],
+['04/06/2026','Check','Squarespace','','General Fund','Inwood Bank - Checking (6572)',-37.8],
+['04/07/2026','Check','Armor Coffee Co','','General Fund','Inwood Bank - Checking (6572)',-11.19],
+['04/08/2026','Check','Audible','','General Fund','Inwood Bank - Checking (6572)',-16.18],
+['04/08/2026','Check','Armor Coffee Co','','General Fund','Inwood Bank - Checking (6572)',-8.45],
+['04/09/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['04/09/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['04/09/2026','Check','Church Mutual','Workers&#39; Compensation','General Fund','Inwood Bank - Checking (6572)',-1210.0],
+['04/09/2026','Check','Breeze Church Management','','General Fund','Inwood Bank - Checking (6572)',-72.0],
+['04/10/2026','Check','Christopher Brons','','General Fund','Inwood Bank - Checking (6572)',-500.0],
+['04/10/2026','Check','The Haiti Collective','','Haiti','Inwood Bank - Checking (6572)',-3000.0],
+['04/10/2026','Check','Loop Digital Church Bulletins','','General Fund','Inwood Bank - Checking (6572)',-10.0],
+['04/10/2026','Check','Midwestern Baptist Theological Seminary','','General Fund','Inwood Bank - Checking (6572)',-198.0],
+['04/12/2026','Deposit','Accounting Contribution','Contribution transaction for batch Batch 691 - Contributions deposit','Benevolence Fund','Inwood Bank - Checking (6572)',20.0],
+['04/13/2026','Check','Chick-fil-A','','General Fund','Inwood Bank - Checking (6572)',-18.84],
+['04/14/2026','Check','PGCS, Inc. dba Anago of Dallas','','General Fund','Inwood Bank - Checking (6572)',-408.0],
+['04/14/2026','Check','Dan Truitt','','General Fund','Inwood Bank - Checking (6572)',-1041.66],
+['04/15/2026','Journal Entry','','Payroll: 04/01/2026 - 04/15/2026','General Fund','Inwood Bank - Checking (6572)',-9047.08],
+['04/15/2026','Check','East Fork Special Utility District','','General Fund','Inwood Bank - Checking (6572)',-50.0],
+['04/15/2026','Check','East Fork Special Utility District','','General Fund','Inwood Bank - Checking (6572)',-74.65],
+['04/15/2026','Check','GuideStone Financial Resources','','General Fund','Inwood Bank - Checking (6572)',-2613.92],
+['04/15/2026','Check','Amazon','First Aid Kit','General Fund','Inwood Bank - Checking (6572)',-37.44],
+['04/16/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['04/16/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['04/16/2026','Check','Christian Care Ministry','','General Fund','Inwood Bank - Checking (6572)',-810.3],
+['04/16/2026','Check','Christian Care Ministry','','General Fund','Inwood Bank - Checking (6572)',-1215.5],
+['04/16/2026','Check','B&B Theatres','','Evangelism & Missions','Inwood Bank - Checking (6572)',-160.93],
+['04/16/2026','Check','B&B Theatres','','Evangelism & Missions','Inwood Bank - Checking (6572)',-478.48],
+['04/16/2026','Deposit','Regular Deposit','Reimbursment for SDI Movie Night','Evangelism & Missions','Inwood Bank - Checking (6572)',135.0],
+['04/16/2026','Journal Entry','North Dallas Bank & Trust Co.','Interest Paid - NDBT xxx6851','General Fund','North Dallas Bank & Trust - CD (6851)',2294.43],
+['04/17/2026','Check','Adam Szabados','','Adam Szabados','Inwood Bank - Checking (6572)',-1104.0],
+['04/19/2026','Deposit','Accounting Contribution','Contribution transaction for batch Batch #692 - Contributions deposit','General Fund','Inwood Bank - Checking (6572)',7140.0],
+['04/20/2026','Check','10ofthose US','','General Fund','Inwood Bank - Checking (6572)',-37.89],
+['04/20/2026','Check','Reliant Mission','','Satya Shiksha Seva (India)','Inwood Bank - Checking (6572)',-2508.34],
+['04/20/2026','Check','Creekside Fine Grill','','General Fund','Inwood Bank - Checking (6572)',-269.9],
+['04/20/2026','Check','Jerry Thompson','','General Fund','Inwood Bank - Checking (6572)',-435.77],
+['04/21/2026','Check','Aplos Software','','General Fund','Inwood Bank - Checking (6572)',-169.0],
+['04/21/2026','Check','Brian Johnson','','General Fund','Inwood Bank - Checking (6572)',-210.75],
+['04/22/2026','Check','9Marks','','General Fund','Inwood Bank - Checking (6572)',-24.01],
+['04/22/2026','Journal Entry','Inwood National Bank','Interest Paid - INB xxx5107','General Fund','Inwood Bank - CD (5107)',387.61],
+['04/23/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['04/23/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['04/23/2026','Check','NRG Business','','General Fund','Inwood Bank - Checking (6572)',-1625.04],
+['04/23/2026','Check','Brian Johnson','','General Fund','Inwood Bank - Checking (6572)',-299.5],
+['04/23/2026','Deposit','PGCS, Inc. dba Anago of Dallas','','General Fund','Inwood Bank - Checking (6572)',408.0],
+['04/24/2026','Check','Starwood Cafe','','General Fund','Inwood Bank - Checking (6572)',-45.84],
+['04/24/2026','Deposit','Amazon','','General Fund','Inwood Bank - Checking (6572)',6.42],
+['04/26/2026','Deposit','Accounting Contribution','Contribution transaction for batch Batch #693 - Contributions deposit','General Fund','Inwood Bank - Checking (6572)',4346.82],
+['04/27/2026','Check','LinkedPhone','','General Fund','Inwood Bank - Checking (6572)',-19.99],
+['04/28/2026','Check','PGCS, Inc. dba Anago of Dallas','','General Fund','Inwood Bank - Checking (6572)',-408.0],
+['04/29/2026','Check','Dan Truitt','','General Fund','Inwood Bank - Checking (6572)',-1041.66],
+['04/30/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['04/30/2026','Check','Venmo','Childcare','General Fund','Inwood Bank - Checking (6572)',-36.0],
+['04/30/2026','Journal Entry','','Payroll: 04/16/2026 - 04/30/2026','General Fund','Inwood Bank - Checking (6572)',-9047.1],
+['04/30/2026','Check','The Haiti Collective','','Haiti','Inwood Bank - Checking (6572)',-225.0],
+['04/30/2026','Deposit','Accounting Contribution','Contribution transaction for batch Batch #694 - Contributions deposit','General Fund','Inwood Bank - Checking (6572)',1270.0],
+['04/30/2026','Deposit','Accounting Contribution','Contribution transaction for batch Venmo - Contributions deposit','General Fund','Inwood Bank - Checking (6572)',17118.76],
+['04/30/2026','Deposit','Inwood National Bank','Interest Paid - INB xxx7265','General Fund','Inwood Bank - MMA (7265)',97.01],
+['04/30/2026','Journal Entry','Live Oak Bank','Interest Paid - LOB xxx8514','General Fund','LiveOak Bank - Savings (8514)',4.08],
+['04/30/2026','Journal Entry','Live Oak Bank','Interest Paid - LOB xxx8124','General Fund','LiveOak Bank - CD (8124)',862.48],
+['04/30/2026','Journal Entry','North Dallas Bank & Trust Co.','Interest Paid - NDBT xxx1685','General Fund','North Dallas Bank & Trust - MMA (1685)',4.68],
+];
+
+function buildReg(){
+  const body=document.getElementById('reg-body');
+  body.innerHTML='';
+  [...TX].sort((a,b)=>new Date(a[0])-new Date(b[0])).forEach(t=>{
+    const [date,type,payee,memo,fund,acct,amount]=t;
+    const tr=document.createElement('tr');
+    tr.dataset.date=date;tr.dataset.type=type;
+    tr.dataset.payee=payee.toLowerCase();tr.dataset.memo=memo.toLowerCase();
+    tr.dataset.fund=fund.toLowerCase();tr.dataset.acct=acct.toLowerCase();tr.dataset.amount=Math.abs(amount).toFixed(2);
+    tr.innerHTML=`<td>${date}</td><td>${type}</td><td>${payee}</td><td style="color:var(--text-light);font-size:12px">${memo}</td><td style="font-size:12px">${fund}</td><td style="font-size:11px;color:var(--text-light)">${acct}</td><td class="${amount>0?'positive':''}">${amount>0?'+':''}${f(amount)}</td>`;
+    body.appendChild(tr);
+  });
+  document.getElementById('reg-count').textContent=TX.length+' transactions — all bank accounts';
+}
+function filterReg(){
+  const s=document.getElementById('search-input').value.toLowerCase();
+  const mo=document.getElementById('filt-mo').value;
+  const ty=document.getElementById('filt-ty').value.toLowerCase();
+  const ac=document.getElementById('filt-acct').value.toLowerCase();
+  let c=0;
+  document.querySelectorAll('#reg-body tr').forEach(tr=>{
+    const show=(!s||tr.dataset.payee.includes(s)||tr.dataset.memo.includes(s)||tr.dataset.fund.includes(s)||tr.dataset.acct.includes(s)||tr.dataset.amount.includes(s)||tr.dataset.date.includes(s))&&(!mo||tr.dataset.date.includes(mo))&&(!ty||tr.dataset.type.toLowerCase().includes(ty))&&(!ac||tr.dataset.acct.includes(ac));
+    tr.style.display=show?'':'none';if(show)c++;
+  });
+  document.getElementById('reg-count').textContent=c+' transaction'+(c!==1?'s':'')+' shown';
+}
+
+// CHARTS
+const C={
+  charcoal:'#4a3f37',tan:'#c4a882',green:'#5a9970',red:'#b05555',
+  gold:'#c9972a',blue:'#4a7fa5',slate:'#7a8fa0'
+};
+function buildCharts(){
+  Chart.defaults.font.family="'DM Sans', sans-serif";
+  Chart.defaults.font.size=12;
+  Chart.defaults.color='#8a7a70';
+  const grid='rgba(0,0,0,0.05)';
+  const tip=cb=>({plugins:{tooltip:{callbacks:{label:cb}}}});
+
+  // Monthly P&L
+  new Chart(document.getElementById('c-monthly-pl'),{type:'bar',data:{
+    labels:['January','February','March','April'],
+    datasets:[
+      {label:'Income',data:[49808,48465,56191,49245],backgroundColor:C.green,borderRadius:3},
+      {label:'Expenses',data:[46810,60515,38999,40313],backgroundColor:C.tan,borderRadius:3}
+    ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,position:'top',labels:{boxWidth:12,padding:16,color:C.charcoal}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': $'+ctx.raw.toLocaleString()}}},
+    scales:{x:{grid:{display:false},ticks:{color:C.charcoal}},y:{grid:{color:grid},ticks:{color:'#8a7a70',callback:v=>'$'+(v/1000).toFixed(0)+'K'}}}}});
+
+  // Reserves trend
+  new Chart(document.getElementById('c-reserves'),{type:'line',data:{
+    labels:['Jan 1','Jan 31','Feb 28','Mar 31','Apr 30'],
+    datasets:[{label:'Total Reserves',data:[1219757,1232616,1228648,1245757,1246689],borderColor:C.charcoal,backgroundColor:'rgba(74,63,55,0.08)',borderWidth:2.5,fill:true,tension:0.3,pointBackgroundColor:C.charcoal,pointRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' $'+ctx.raw.toLocaleString()}}},
+    scales:{x:{grid:{display:false},ticks:{color:C.charcoal}},y:{grid:{color:grid},ticks:{color:'#8a7a70',callback:v=>'$'+(v/1000).toFixed(0)+'K'},min:1180000,max:1280000}}}});
+
+  // Giving
+  new Chart(document.getElementById('c-giving'),{type:'bar',data:{
+    labels:['January','February','March','April'],
+    datasets:[
+      {label:'Actual Giving',data:[51873,42963,49258,45595],backgroundColor:C.blue,borderRadius:3},
+      {label:'Budget',data:[40984,63003,43109,42541],type:'line',borderColor:C.gold,borderWidth:2,borderDash:[5,4],pointBackgroundColor:C.gold,pointRadius:4,fill:false}
+    ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,position:'top',labels:{boxWidth:12,padding:16,color:C.charcoal}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': $'+ctx.raw.toLocaleString()}}},
+    scales:{x:{grid:{display:false},ticks:{color:C.charcoal}},y:{grid:{color:grid},ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'K',color:'#8a7a70'}}}}});
+
+  // Expense donut
+  new Chart(document.getElementById('c-donut'),{type:'doughnut',data:{
+    labels:['Staff Compensation','Facilities & Building','Missions & Outreach','G&A (non-staff)','Ministry Programs'],
+    datasets:[{data:[96526,46495,25762,13561,3942],backgroundColor:[C.charcoal,C.tan,C.blue,C.slate,C.green],borderWidth:2,borderColor:'#fdfaf6',hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+    plugins:{legend:{display:true,position:'right',labels:{boxWidth:12,padding:12,color:C.charcoal,font:{size:11}}},
+    tooltip:{callbacks:{label:ctx=>' $'+ctx.raw.toLocaleString()+' ('+(ctx.raw/186285*100).toFixed(1)+'%)'}}}}}); 
+
+  // Budget vs actual horizontal
+  const bvaL=['Contributions','Interest Earned','Staff Compensation','G&A (non-staff)','Facilities','Missions & Outreach','Ministry Programs'];
+  const bvaBud=[184035,9033,107175,8682,27805,23231,9046];
+  const bvaAct=[189689,14020,96526,13561,29093,25762,3942];
+  const bvaCol=bvaAct.map((a,i)=>i<2?(a>=bvaBud[i]?C.green:C.red):(a<=bvaBud[i]?C.green:C.red));
+  new Chart(document.getElementById('c-bva'),{type:'bar',data:{
+    labels:bvaL,
+    datasets:[
+      {label:'Budget',data:bvaBud,backgroundColor:'rgba(0,0,0,0.08)',borderRadius:2},
+      {label:'Actual',data:bvaAct,backgroundColor:bvaCol,borderRadius:2}
+    ]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:true,position:'top',labels:{boxWidth:12,padding:16,color:C.charcoal}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': $'+ctx.raw.toLocaleString()}}},
+    scales:{x:{grid:{color:grid},ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'K',color:'#8a7a70'}},y:{grid:{display:false},ticks:{color:C.charcoal}}}}});
+
+  // Interest
+  new Chart(document.getElementById('c-interest'),{type:'bar',data:{
+    labels:['January','February','March','April'],
+    datasets:[
+      {label:'Actual Interest',data:[3736,1516,5117,3650],backgroundColor:C.gold,borderRadius:3},
+      {label:'Budget',data:[2365,2112,2315,2241],type:'line',borderColor:C.slate,borderWidth:2,borderDash:[5,4],pointBackgroundColor:C.slate,pointRadius:4,fill:false}
+    ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:true,position:'top',labels:{boxWidth:12,padding:14,color:C.charcoal}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': $'+ctx.raw.toLocaleString()}}},
+    scales:{x:{grid:{display:false},ticks:{color:C.charcoal}},y:{grid:{color:grid},ticks:{callback:v=>'$'+(v/1000).toFixed(1)+'K',color:'#8a7a70'}}}}});
+
+  // Missions donut
+  new Chart(document.getElementById('c-missions'),{type:'doughnut',data:{
+    labels:['Satya Shiksha Seva','Adam Szabados','Evan/Missions Other','Haiti Collective','WCCCC','Collin Baptist/SBC','Squarespace'],
+    datasets:[{data:[10033,4818,6231,3450,628,450,151],backgroundColor:[C.blue,C.charcoal,C.gold,C.tan,C.green,C.slate,'#b8a090'],borderWidth:2,borderColor:'#fdfaf6',hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+    plugins:{legend:{display:true,position:'right',labels:{boxWidth:12,padding:10,color:C.charcoal,font:{size:11}}},
+    tooltip:{callbacks:{label:ctx=>' $'+ctx.raw.toLocaleString()+' ('+(ctx.raw/25762*100).toFixed(1)+'%)'}}}}}); 
+}
+
+function init(){
+  buildPL('ytd');
+  buildReg();
+  buildCharts();
+}
+</script>
+</body>
+</html>
